@@ -239,7 +239,7 @@ export default function EditorPreview({ projectName }: { projectName?: string })
                   aria-pressed={isActive}
                   onClick={() => setViewport(v.id)}
                   className={`grid h-7 w-7 place-items-center rounded-md transition ${isActive
-                      ? 'bg-accent-soft text-accent'
+                      ? 'bg-accent-soft text-accent-text'
                       : 'text-muted hover:bg-elevated hover:text-fg-2'
                     }`}
                 >
@@ -303,7 +303,7 @@ export default function EditorPreview({ projectName }: { projectName?: string })
                 <div className="flex flex-col items-center gap-3 text-center text-muted">
                   {generatingPageId ? (
                     <>
-                      <Loader2 size={22} className="animate-spin text-accent" />
+                      <Loader2 size={22} className="animate-spin text-accent-text" />
                       <p className="text-sm font-medium">Generating your preview…</p>
                     </>
                   ) : (
@@ -319,7 +319,7 @@ export default function EditorPreview({ projectName }: { projectName?: string })
             {activePage && !activeHtml && generatingPageId === activePage.id && (
               <div className="pointer-events-none absolute inset-0 grid place-items-center bg-card">
                 <div className="flex flex-col items-center gap-3 text-center text-muted">
-                  <Loader2 size={22} className="animate-spin text-accent" />
+                  <Loader2 size={22} className="animate-spin text-accent-text" />
                   <p className="text-sm font-medium">Generating your {activePage.label}…</p>
                 </div>
               </div>
@@ -354,9 +354,9 @@ function PreviewTab({
     >
       <button onClick={onSelect} className="flex min-w-0 items-center gap-2">
         {isGenerating ? (
-          <Loader2 size={14} className="animate-spin text-accent" />
+          <Loader2 size={14} className="animate-spin text-accent-text" />
         ) : (
-          <Icon size={15} strokeWidth={1.9} className={isActive ? 'text-accent' : 'text-muted'} />
+          <Icon size={15} strokeWidth={1.9} className={isActive ? 'text-accent-text' : 'text-muted'} />
         )}
         <span className="truncate">{tab.label}</span>
       </button>

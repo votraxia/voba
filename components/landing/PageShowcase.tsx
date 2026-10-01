@@ -202,7 +202,7 @@ export default function PageShowcase() {
                 <h3 className="text-[14px] font-semibold text-fg">{point.title}</h3>
                 <p className="mt-0.5 text-[12.5px] leading-5 text-fg-2">{point.desc}</p>
               </div>
-              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-muted transition group-hover:bg-accent-soft group-hover:text-accent">
+              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-muted transition group-hover:bg-accent-soft group-hover:text-accent-text">
                 <ArrowUpRight size={14} strokeWidth={2.2} />
               </span>
             </div>

@@ -26,7 +26,7 @@ export const THEMES = [
     id: 'porcelain',
     label: 'Porcelain',
     hint: 'Light & calm',
-    swatch: ['#f5f3ee', '#ffffff', '#5f8f12'],
+    swatch: ['#f5f3ee', '#ffffff', '#c7f36b'],
   },
   {
     id: 'cobalt',

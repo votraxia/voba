@@ -164,7 +164,7 @@ export default function SidebarBilling() {
             }}
             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-accent-fg transition hover:bg-accent-soft"
           >
-            <Sparkles size={16} strokeWidth={1.9} className="text-accent" />
+            <Sparkles size={16} strokeWidth={1.9} className="text-accent-text" />
             Upgrade Plan
           </button>
           <Link

@@ -41,7 +41,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors ${isActive
-                ? 'bg-accent-soft text-accent'
+                ? 'bg-accent-soft text-accent-text'
                 : 'text-[#1f2937] hover:bg-accent-soft'
                 }`}
             >

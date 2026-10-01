@@ -72,7 +72,7 @@ export default function BillingPage() {
     return (
       <div className="grid min-h-screen place-items-center bg-app text-fg-2">
         <div className="flex items-center gap-3 text-sm font-medium">
-          <Loader2 size={18} className="animate-spin text-accent" />
+          <Loader2 size={18} className="animate-spin text-accent-text" />
           Loading billing…
         </div>
       </div>
@@ -155,7 +155,7 @@ export default function BillingPage() {
             <div className="flex items-center gap-3">
               <span
                 className={`grid h-11 w-11 place-items-center rounded-xl ${
-                  isPaid ? 'bg-elevated text-warning' : 'bg-accent-soft text-accent'
+                  isPaid ? 'bg-elevated text-warning' : 'bg-accent-soft text-accent-text'
                 }`}
               >
                 {isPaid ? <Crown size={22} strokeWidth={1.9} /> : <CreditCard size={22} strokeWidth={1.9} />}
@@ -302,7 +302,7 @@ export default function BillingPage() {
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-sm font-semibold text-fg">{p.name}</p>
                     {isCurrent && (
-                      <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">
+                      <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">
                         Current
                       </span>
                     )}

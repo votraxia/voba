@@ -30,12 +30,14 @@
   --app-muted: #6b6f66;
   --app-inverse: #0d0f0e;
 
-  /* Accent — the signature lime */
+  /* Accent — the signature lime, shared by every theme */
   --app-accent: #c7f36b;
   --app-accent-hover: #d6ff82;
   --app-accent-fg: #14210a;
   --app-accent-soft: rgba(199, 243, 107, 0.12);
   --app-accent-line: rgba(199, 243, 107, 0.32);
+  /* On a dark surface the true accent is already legible as text. */
+  --app-accent-text: #c7f36b;
 
   /* Status */
   --app-success: #3ddc84;
@@ -69,12 +71,17 @@
   --app-muted: #8e897e;
   --app-inverse: #ffffff;
 
-  /* The accent darkens on a light surface to stay legible as text */
-  --app-accent: #5f8f12;
-  --app-accent-hover: #4a7409;
-  --app-accent-fg: #ffffff;
-  --app-accent-soft: rgba(95, 143, 18, 0.1);
-  --app-accent-line: rgba(95, 143, 18, 0.3);
+  /* One accent across every theme: the lime from the reference palette. */
+  --app-accent: #c7f36b;
+  --app-accent-hover: #d6ff82;
+  --app-accent-fg: #14210a;
+  --app-accent-soft: rgba(151, 179, 71, 0.18);
+  --app-accent-line: rgba(110, 132, 45, 0.42);
+
+  /* Accent-coloured TEXT needs its own value. Raw lime on this theme's paper
+     background is ~1.15:1 (illegible), so text uses a darkened lime of the same
+     hue (~5.6:1, AA). Fills, borders and icons keep the true accent. */
+  --app-accent-text: #4d6b0f;
 
   --app-success: #17864a;
   --app-success-soft: rgba(23, 134, 74, 0.1);
@@ -104,12 +111,13 @@
   --app-muted: #6a7f9e;
   --app-inverse: #0a1220;
 
-  /* Cobalt swaps the warm lime for an electric amber — bolder, techier */
+  /* Cobalt keeps its amber accent — legible as text on the dark navy. */
   --app-accent: #ff8a3d;
   --app-accent-hover: #ffa45c;
   --app-accent-fg: #2a1200;
   --app-accent-soft: rgba(255, 138, 61, 0.14);
   --app-accent-line: rgba(255, 138, 61, 0.34);
+  --app-accent-text: #ff8a3d;
 
   --app-success: #34d399;
   --app-success-soft: rgba(52, 211, 153, 0.12);
@@ -144,6 +152,7 @@
   --color-accent-fg: var(--app-accent-fg);
   --color-accent-soft: var(--app-accent-soft);
   --color-accent-line: var(--app-accent-line);
+  --color-accent-text: var(--app-accent-text);
 
   --color-success: var(--app-success);
   --color-success-soft: var(--app-success-soft);

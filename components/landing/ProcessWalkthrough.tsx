@@ -163,7 +163,7 @@ function Preview({ stage }: { stage: StageId }) {
                   className="flex items-center gap-2 rounded-lg border border-line bg-[#fdfbf9] px-2.5 py-1.5"
                 >
                   <span className="w-4 shrink-0 text-[8px] font-mono text-muted">{i + 1}</span>
-                  <FileCode2 size={10} strokeWidth={2} className="shrink-0 text-accent" />
+                  <FileCode2 size={10} strokeWidth={2} className="shrink-0 text-accent-text" />
                   <span className="flex-1 truncate font-mono text-[9px] text-fg-2">
                     {section.name}.liquid
                   </span>
@@ -306,7 +306,7 @@ function Chat({ stage }: { stage: StageId }) {
               </p>
             </div>
             <div className="flex items-center gap-1.5 text-[8px] text-muted">
-              <Sparkles size={9} className="text-accent" />
+              <Sparkles size={9} className="text-accent-text" />
               Building sections…
             </div>
           </>
@@ -324,7 +324,7 @@ function Chat({ stage }: { stage: StageId }) {
                   </li>
                 ))}
                 <li className="flex items-center gap-1.5">
-                  <Loader2 size={9} className="shrink-0 animate-spin text-accent" />
+                  <Loader2 size={9} className="shrink-0 animate-spin text-accent-text" />
                   <span className="font-mono text-[7.5px] text-muted">brand-story</span>
                 </li>
               </ul>
@@ -419,7 +419,7 @@ export default function ProcessWalkthrough() {
               className={`group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition ${
                 active
                   ? 'bg-fg text-fg'
-                  : 'text-muted hover:bg-accent-soft hover:text-accent'
+                  : 'text-muted hover:bg-accent-soft hover:text-accent-text'
               }`}
             >
               <span
@@ -437,7 +437,7 @@ export default function ProcessWalkthrough() {
             type="button"
             onClick={() => go(index - 1)}
             aria-label="Previous stage"
-            className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-accent"
+            className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-accent-text"
           >
             <ChevronLeft size={15} strokeWidth={2.2} />
           </button>
@@ -445,7 +445,7 @@ export default function ProcessWalkthrough() {
             type="button"
             onClick={() => go(index + 1)}
             aria-label="Next stage"
-            className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-accent"
+            className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-accent-soft hover:text-accent-text"
           >
             <ChevronRight size={15} strokeWidth={2.2} />
           </button>
@@ -477,9 +477,9 @@ export default function ProcessWalkthrough() {
       <div className="mt-5 flex items-start gap-2.5" aria-live="polite">
         <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft">
           {stage.id === 'edit' ? (
-            <MousePointerClick size={13} strokeWidth={2} className="text-accent" />
+            <MousePointerClick size={13} strokeWidth={2} className="text-accent-text" />
           ) : (
-            <Wand2 size={13} strokeWidth={2} className="text-accent" />
+            <Wand2 size={13} strokeWidth={2} className="text-accent-text" />
           )}
         </span>
         <div>

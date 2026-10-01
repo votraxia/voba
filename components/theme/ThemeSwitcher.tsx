@@ -90,7 +90,7 @@ export default function ThemeSwitcher() {
                   <span className="block text-[13.5px] font-semibold text-fg">{item.label}</span>
                   <span className="block text-[12px] text-muted">{item.hint}</span>
                 </span>
-                {selected && <Check size={15} strokeWidth={3} className="shrink-0 text-accent" />}
+                {selected && <Check size={15} strokeWidth={3} className="shrink-0 text-accent-text" />}
               </button>
             );
           })}

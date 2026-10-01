@@ -98,7 +98,7 @@ const paymentMethods = [
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-accent">
+    <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-accent-text">
       {children}
     </span>
   );
@@ -228,7 +228,7 @@ export default function LandingPage() {
             </div>
             <a
               href="#pricing"
-              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-card px-5 text-[14px] font-semibold text-fg transition hover:border-accent-line hover:text-accent"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-card px-5 text-[14px] font-semibold text-fg transition hover:border-accent-line hover:text-accent-text"
             >
               See what plans include
               <ArrowRight size={16} strokeWidth={2.1} />
@@ -275,7 +275,7 @@ export default function LandingPage() {
                     href={photo.credit.href}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="text-[12px] text-muted transition hover:text-accent"
+                    className="text-[12px] text-muted transition hover:text-accent-text"
                   >
                     {photo.credit.name} / Unsplash
                   </a>
@@ -307,7 +307,7 @@ export default function LandingPage() {
 
         <div className="relative mx-auto grid max-w-[1160px] gap-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card/[0.05] px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-accent">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card/[0.05] px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-accent-text">
               <Package size={13} strokeWidth={2.2} />
               Export
             </span>
@@ -325,7 +325,7 @@ export default function LandingPage() {
             <ul className="mt-8 space-y-3.5">
               {exportGuarantees.map((item) => (
                 <li key={item} className="flex gap-3 text-[14px] leading-6 text-fg/70">
-                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent-soft text-accent ring-1 ring-accent-soft">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent-soft text-accent-text ring-1 ring-accent-soft">
                     <Check size={11} strokeWidth={3} />
                   </span>
                   {item}
@@ -370,7 +370,7 @@ export default function LandingPage() {
             />
 
             <div className="absolute -right-2 -top-4 z-10 hidden items-center gap-1.5 rounded-full border border-line bg-card/95 px-3 py-1.5 text-[12px] font-medium text-fg/75 shadow-[0_14px_34px_rgba(0,0,0,0.5)] backdrop-blur lg:flex">
-              <SlidersHorizontal size={12} strokeWidth={2.2} className="text-accent" />
+              <SlidersHorizontal size={12} strokeWidth={2.2} className="text-accent-text" />
               Edit everything visually
             </div>
             <div className="absolute -bottom-4 -left-2 z-10 hidden items-center gap-1.5 rounded-full border border-line bg-card/95 px-3 py-1.5 text-[12px] font-medium text-fg/75 shadow-[0_14px_34px_rgba(0,0,0,0.5)] backdrop-blur lg:flex">
@@ -514,7 +514,7 @@ export default function LandingPage() {
       <section id="pricing" className="scroll-mt-24 bg-app px-6 py-24">
         <div className="mx-auto max-w-[1160px]">
           <div className="mx-auto max-w-[640px] text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-accent">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-accent-soft px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-accent-text">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               Pricing
             </span>
@@ -589,7 +589,7 @@ export default function LandingPage() {
                     className={`mt-8 inline-flex h-11 items-center justify-center rounded-full text-[14px] font-semibold transition ${
                       highlighted
                         ? 'bg-gradient-to-b from-accent to-accent-hover text-accent-fg shadow-[var(--app-shadow-md)] hover:from-accent-hover hover:to-accent-hover'
-                        : 'border border-line bg-card text-fg hover:border-accent-line hover:text-accent'
+                        : 'border border-line bg-card text-fg hover:border-accent-line hover:text-accent-text'
                     }`}
                   >
                     {plan.id === 'free' ? 'Start building free' : `Choose ${plan.name}`}
@@ -626,7 +626,7 @@ export default function LandingPage() {
                     key={method.label}
                     className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-[12.5px] font-medium text-fg-2"
                   >
-                    <Icon size={13} strokeWidth={2} className="text-accent" />
+                    <Icon size={13} strokeWidth={2} className="text-accent-text" />
                     {method.label}
                   </span>
                 );

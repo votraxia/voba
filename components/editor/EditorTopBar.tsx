@@ -231,7 +231,7 @@ export default function EditorTopBar({
           >
             {busy ? (
               <>
-                <Loader2 size={16} strokeWidth={2} className="animate-spin text-accent" />
+                <Loader2 size={16} strokeWidth={2} className="animate-spin text-accent-text" />
                 {busy === 'png' ? pngStatus || 'Exporting…' : 'Exporting…'}
               </>
             ) : (
@@ -309,7 +309,7 @@ export default function EditorTopBar({
                 <button
                   onClick={() => void undo()}
                   disabled={revisions.length === 0 || saving}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-accent-text transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <RotateCcw size={12} strokeWidth={2.2} /> Undo last
                 </button>
@@ -335,7 +335,7 @@ export default function EditorTopBar({
                         <button
                           onClick={() => void handleRestore(revision.id)}
                           disabled={saving || restoringId !== null}
-                          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+                          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-accent-text transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {restoringId === revision.id ? (
                             <Loader2 size={13} className="animate-spin" />

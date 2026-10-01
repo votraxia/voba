@@ -211,7 +211,7 @@ export default function ExportDialog({
           <div className="min-h-0 overflow-y-auto px-5 py-5">
             {state === 'checking' && (
               <div className="flex items-center gap-3 py-6 text-sm text-fg-2">
-                <Loader2 size={18} className="animate-spin text-accent" />
+                <Loader2 size={18} className="animate-spin text-accent-text" />
                 Checking for an existing export…
               </div>
             )}
@@ -274,7 +274,7 @@ export default function ExportDialog({
               <div>
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <span className="text-sm font-semibold text-fg">{progress.message}</span>
-                  <span className="shrink-0 text-sm font-bold tabular-nums text-accent">
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-accent-text">
                     {Math.round(progress.percent)}%
                   </span>
                 </div>
@@ -293,7 +293,7 @@ export default function ExportDialog({
                         {done ? (
                           <CheckCircle2 size={16} className="shrink-0 text-success" />
                         ) : active ? (
-                          <Loader2 size={16} className="shrink-0 animate-spin text-accent" />
+                          <Loader2 size={16} className="shrink-0 animate-spin text-accent-text" />
                         ) : (
                           <span className="grid h-4 w-4 shrink-0 place-items-center">
                             <span className="h-2 w-2 rounded-full bg-line-strong" />

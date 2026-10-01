@@ -28,7 +28,7 @@ export default function TemplateGrid() {
             </span>
             <h3 className="mt-4 text-[15px] font-semibold text-fg">{point.title}</h3>
             <p className="mt-1.5 text-[13px] leading-5 text-fg-2">{point.desc}</p>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">
+            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent-text">
               Use this prompt
               <ArrowRight
                 size={14}

@@ -168,7 +168,7 @@ export default function DashboardPage() {
                     </span>
                   </span>
                 </div>
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-fg transition group-hover:translate-x-1 group-hover:border-[#ffb8a6] group-hover:text-accent">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-fg transition group-hover:translate-x-1 group-hover:border-[#ffb8a6] group-hover:text-accent-text">
                   <ArrowRight size={19} strokeWidth={1.8} />
                 </span>
               </button>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
           className="mt-8 flex items-center justify-between gap-4 rounded-2xl border border-line bg-accent-soft px-6 py-5 transition hover:border-accent-line"
         >
           <span className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-card text-accent">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-card text-accent-text">
               <FolderOpen size={20} strokeWidth={1.9} />
             </span>
             <span>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
               </span>
             </span>
           </span>
-          <ArrowRight size={18} strokeWidth={2} className="shrink-0 text-accent" />
+          <ArrowRight size={18} strokeWidth={2} className="shrink-0 text-accent-text" />
         </Link>
       </div>
 

@@ -26,7 +26,7 @@ export default function EditorChatPanel() {
       <div className="flex items-center justify-between px-5 pb-4 pt-5">
         <button
           onClick={newChat}
-          className="flex items-center gap-2 text-[15px] font-semibold text-accent transition hover:text-accent-hover"
+          className="flex items-center gap-2 text-[15px] font-semibold text-accent-text transition hover:text-accent-hover"
         >
           <Plus size={18} strokeWidth={2.2} />
           New chat
@@ -38,7 +38,7 @@ export default function EditorChatPanel() {
 
         {messages.length === 0 && !isStreaming && (
           <div className="flex gap-3">
-            <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+            <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-text">
               <Sparkles size={14} fill="currentColor" strokeWidth={1.5} />
             </span>
             <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-line bg-card px-4 py-3 text-sm leading-6 text-fg-2">
@@ -59,7 +59,7 @@ export default function EditorChatPanel() {
           }
           return (
             <div key={message.id} className="flex gap-3">
-              <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+              <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent-text">
                 <Sparkles size={14} fill="currentColor" strokeWidth={1.5} />
               </span>
               <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-line bg-card px-4 py-3 text-sm leading-6 text-fg-2">

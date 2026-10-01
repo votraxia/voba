@@ -59,11 +59,11 @@ function RevisionVisual() {
               <span className="text-[10px] text-muted">{entry.time}</span>
             </span>
             {entry.current ? (
-              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[9.5px] font-semibold text-accent">
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[9.5px] font-semibold text-accent-text">
                 Current
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent-text">
                 <RotateCcw size={9} strokeWidth={2.6} />
                 Restore
               </span>
@@ -243,7 +243,7 @@ export default function FeatureShowcase() {
             {row.visual}
           </div>
           <div className="max-w-[440px] flex-1">
-            <span className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-accent">
+            <span className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-accent-text">
               {row.eyebrow}
             </span>
             <h3 className="mt-3 text-[24px] font-semibold leading-[1.2] tracking-[-0.02em] text-fg sm:text-[28px]">

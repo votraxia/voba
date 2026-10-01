@@ -83,7 +83,7 @@ export default function ProjectsPage() {
         {state === 'loading' && (
           <div className="grid place-items-center py-28 text-fg-2">
             <div className="flex items-center gap-3 text-sm font-medium">
-              <Loader2 size={18} className="animate-spin text-accent" />
+              <Loader2 size={18} className="animate-spin text-accent-text" />
               Loading your projects…
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function ProjectsPage() {
         {state === 'ready' && projects.length === 0 && (
           <div className="grid place-items-center rounded-2xl border border-dashed border-line bg-card py-24 text-center">
             <div className="flex flex-col items-center gap-4">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent-text">
                 <FolderOpen size={26} strokeWidth={1.8} />
               </span>
               <div>

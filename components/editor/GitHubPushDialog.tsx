@@ -186,7 +186,7 @@ export default function GitHubPushDialog({
   if (phase === 'checking') {
     return dialogShell(
       <div className="flex items-center gap-3 py-6 text-sm text-fg-2">
-        <Loader2 size={18} className="animate-spin text-accent" />
+        <Loader2 size={18} className="animate-spin text-accent-text" />
         Checking your GitHub connection…
       </div>
     );
@@ -282,7 +282,7 @@ export default function GitHubPushDialog({
     <div>
       {phase === 'committing' && (
         <div className="mb-4 flex items-center gap-3 rounded-xl bg-accent-soft px-3.5 py-3 text-[13px] text-accent-fg-2">
-          <Loader2 size={16} className="animate-spin text-accent" />
+          <Loader2 size={16} className="animate-spin text-accent-text" />
           Committing {pushFiles.length} theme file{pushFiles.length === 1 ? '' : 's'}…
         </div>
       )}

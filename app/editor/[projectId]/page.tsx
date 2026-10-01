@@ -52,7 +52,7 @@ export default function EditorPage() {
     return (
       <div className="grid h-screen place-items-center bg-elevated text-fg-2">
         <div className="flex items-center gap-3 text-sm font-medium">
-          <Loader2 size={18} className="animate-spin text-accent" />
+          <Loader2 size={18} className="animate-spin text-accent-text" />
           Loading your project…
         </div>
       </div>

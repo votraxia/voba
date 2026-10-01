@@ -71,7 +71,7 @@ export default function SidebarUser() {
             className="h-10 w-10 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent-text">
             {getInitials(user.name, user.email)}
           </span>
         )}
@@ -88,7 +88,7 @@ export default function SidebarUser() {
           onClick={() => void signOut()}
           aria-label="Sign out"
           title="Sign out"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-accent-fg-2 transition-colors hover:bg-accent-soft hover:text-accent"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-accent-fg-2 transition-colors hover:bg-accent-soft hover:text-accent-text"
         >
           <LogOut size={16} strokeWidth={1.8} />
         </button>

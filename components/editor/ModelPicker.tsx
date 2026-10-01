@@ -105,7 +105,7 @@ export default function ModelPicker() {
         {lockedModel ? (
           <Lock size={16} strokeWidth={2} className="shrink-0 text-muted" />
         ) : (
-          <Sparkles size={17} strokeWidth={1.9} className="shrink-0 text-accent" />
+          <Sparkles size={17} strokeWidth={1.9} className="shrink-0 text-accent-text" />
         )}
         <span className="hidden max-w-[8.5rem] truncate lg:block">
           {getAIModelLabel(activeModel ?? aiModel)}
@@ -153,7 +153,7 @@ export default function ModelPicker() {
                         <span className="truncate text-[13px] font-semibold text-fg">
                           {model.label}
                         </span>
-                        <span className="shrink-0 rounded-md bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                        <span className="shrink-0 rounded-md bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-text">
                           {model.provider}
                         </span>
                         {model.premium && (
@@ -172,9 +172,9 @@ export default function ModelPicker() {
                     </span>
 
                     {saving === model.id ? (
-                      <Loader2 size={15} strokeWidth={2} className="mt-0.5 shrink-0 animate-spin text-accent" />
+                      <Loader2 size={15} strokeWidth={2} className="mt-0.5 shrink-0 animate-spin text-accent-text" />
                     ) : active ? (
-                      <Check size={15} strokeWidth={2.6} className="mt-0.5 shrink-0 text-accent" />
+                      <Check size={15} strokeWidth={2.6} className="mt-0.5 shrink-0 text-accent-text" />
                     ) : locked ? (
                       <Lock size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-muted" />
                     ) : null}

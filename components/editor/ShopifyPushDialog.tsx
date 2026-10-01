@@ -192,7 +192,7 @@ export default function ShopifyPushDialog({
           <div className="px-5 py-5">
             {phase === 'checking' && (
               <div className="flex items-center gap-3 py-6 text-sm text-fg-2">
-                <Loader2 size={18} className="animate-spin text-accent" />
+                <Loader2 size={18} className="animate-spin text-accent-text" />
                 Checking your Shopify connection…
               </div>
             )}
@@ -318,7 +318,7 @@ export default function ShopifyPushDialog({
 
             {phase === 'pushing' && (
               <div className="flex items-center gap-3 py-6 text-sm text-fg-2">
-                <Loader2 size={18} className="animate-spin text-accent" />
+                <Loader2 size={18} className="animate-spin text-accent-text" />
                 Installing the theme on your store…
               </div>
             )}
