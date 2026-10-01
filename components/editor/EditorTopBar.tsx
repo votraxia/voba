@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useBuilder } from './BuilderContext';
 import ExportDialog from './ExportDialog';
+import GitHubPushDialog from './GitHubPushDialog';
 import ModelPicker from './ModelPicker';
 import ShopifyPushDialog from './ShopifyPushDialog';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -24,7 +25,7 @@ import { useSubscription } from '@/components/billing/SubscriptionProvider';
 import UpgradeDialog from '@/components/billing/UpgradeDialog';
 import { exportPagesAsCodeZip } from '@/lib/export/code';
 import { exportPagesAsPng } from '@/lib/export/png';
-import type { ExportPage } from '@/lib/shopify/types';
+import type { ExportPage, ThemeFile } from '@/lib/shopify/types';
 
 interface EditorTopBarProps {
   collapsed: boolean;
@@ -84,6 +85,10 @@ export default function EditorTopBar({
   const searchParams = useSearchParams();
   const [pushOpen, setPushOpen] = useState(false);
   const [pushZip, setPushZip] = useState<{ url: string; fileName: string } | null>(null);
+
+  // "Save theme to GitHub" — commits the built theme files to a repository.
+  const [githubOpen, setGithubOpen] = useState(false);
+  const [githubFiles, setGithubFiles] = useState<ThemeFile[] | null>(null);
 
   // Only fully generated pages (with HTML) are exportable.
   const exportPages = useMemo<ExportPage[]>(
@@ -391,6 +396,10 @@ export default function EditorTopBar({
           setPushZip({ url: zipUrl, fileName });
           setPushOpen(true);
         }}
+        onSaveToGitHub={(files) => {
+          setGithubFiles(files);
+          setGithubOpen(true);
+        }}
       />
 
       {pushZip && (
@@ -406,6 +415,18 @@ export default function EditorTopBar({
           fileName={pushZip.fileName}
           returnTo={pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')}
           justConnected={searchParams.get('shopify') === 'connected'}
+        />
+      )}
+
+      {githubFiles && (
+        <GitHubPushDialog
+          open={githubOpen}
+          onClose={() => {
+            setGithubOpen(false);
+            setGithubFiles(null);
+          }}
+          projectName={projectName}
+          files={githubFiles}
         />
       )}
 

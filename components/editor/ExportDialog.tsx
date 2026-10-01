@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Download,
   FileArchive,
+  GitFork,
   Loader2,
   RefreshCw,
   Store,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { getLatestExport, type ThemeExportRow } from '@/lib/exports';
 import { runShopifyExport, type RunExportResult } from '@/lib/shopify/export';
-import type { ExportPage, ExportProgress, ExportStepId } from '@/lib/shopify/types';
+import type { ExportPage, ExportProgress, ExportStepId, ThemeFile } from '@/lib/shopify/types';
 
 /**
  * "Export to Shopify" dialog (AGENTS.md §10/§16). Orchestrates the full flow:
@@ -37,6 +38,8 @@ interface ExportDialogProps {
   model: string;
   /** Called with the exported ZIP's public URL + filename to open the push flow. */
   onSendToShopify?: (zipUrl: string, fileName: string) => void;
+  /** Called with the built theme files to open the GitHub commit flow. */
+  onSaveToGitHub?: (files: ThemeFile[]) => void;
 }
 
 const STEP_LIST: { id: ExportStepId; label: string }[] = [
@@ -79,6 +82,7 @@ export default function ExportDialog({
   styleGuide,
   model,
   onSendToShopify,
+  onSaveToGitHub,
 }: ExportDialogProps) {
   const [state, setState] = useState<DialogState>('checking');
   const [existing, setExisting] = useState<ThemeExportRow | null>(null);
@@ -353,6 +357,18 @@ export default function ExportDialog({
                     <Download size={17} strokeWidth={2} />
                     Download ZIP
                   </button>
+                  {onSaveToGitHub && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onSaveToGitHub(result.files);
+                      }}
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e8e2de] bg-white px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#fff8f5]"
+                    >
+                      <GitFork size={16} strokeWidth={2} />
+                      Save theme to GitHub
+                    </button>
+                  )}
                   {onSendToShopify && result.row.download_url?.startsWith('https://') && (
                     <button
                       onClick={() => {

@@ -6,7 +6,7 @@ import { createZip } from './zip';
 import { uploadThemeZip } from './storage';
 import { slugify } from './liquid';
 import { convertPagesWithAI } from './ai-sections';
-import type { ExportPage, ExportProgress, ExportStepId } from './types';
+import type { ExportPage, ExportProgress, ExportStepId, ThemeFile } from './types';
 
 /**
  * Client-side orchestrator for "Export to Shopify" (AGENTS.md §10/§11). Converts
@@ -34,6 +34,11 @@ export interface RunExportResult {
   /** The freshly built ZIP, so the dialog can offer an instant download. */
   blob: Blob;
   fileName: string;
+  /**
+   * The built theme files, so alternative delivery targets can use exactly the
+   * sources that went into this ZIP (e.g. committing them to GitHub).
+   */
+  files: ThemeFile[];
   /** How the designed sections were produced (AI vs. raw fallback). */
   sectionStats: { total: number; ai: number; fallback: number };
 }
@@ -163,5 +168,11 @@ export async function runShopifyExport(input: RunExportInput): Promise<RunExport
   });
 
   report('upload', 'Export complete.');
-  return { row, blob, fileName: downloadName, sectionStats: converted.stats };
+  return {
+    row,
+    blob,
+    fileName: downloadName,
+    files: build.files,
+    sectionStats: converted.stats,
+  };
 }

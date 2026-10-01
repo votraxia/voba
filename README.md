@@ -12,6 +12,7 @@ AI Shopify Theme Builder is a Next.js app for generating Shopify storefront conc
 - A CometAPI key (https://www.cometapi.com) for the AI models
 - An Unsplash API access key (free — https://unsplash.com/developers)
 - Optional: a Porsa account (https://porsa.io) for billing
+- Optional: a GitHub fine-grained personal access token for committing themes
 
 ## Install
 
@@ -51,11 +52,16 @@ NEXT_PUBLIC_INSFORGE_EXPORTS_BUCKET=theme-exports
 NEXT_PUBLIC_INSFORGE_THUMBNAILS_BUCKET=project-thumbnails
 SHOPIFY_CLIENT_ID=
 SHOPIFY_CLIENT_SECRET=
+GITHUB_TOKEN=
 ```
 
 `SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET` enable "Send to Shopify": the
 merchant connects their store once via OAuth and exported themes are installed
 directly on their store (see [docs/shopify-connect-setup.md](./docs/shopify-connect-setup.md)).
+
+`GITHUB_TOKEN` enables "Save theme to GitHub": the exported theme is committed to
+a repository in a single atomic commit, so the source is versioned and ready for
+CI (see [docs/github-setup.md](./docs/github-setup.md)).
 
 ## How To Get Each API Key
 
@@ -138,6 +144,22 @@ bank transfer, USSD) that hosts the checkout page and handles tax/compliance:
 Recurring billing is one payment per period: paying Monthly buys 30 days and
 Yearly buys 365; the webhook extends the period on each successful payment.
 
+### GitHub token
+
+Needed only if you want to commit generated themes to a repository. Create a
+**fine-grained** personal access token (https://github.com/settings/personal-access-tokens/new)
+with **Contents: Read and write** on only the repositories you choose, then set
+its value as `GITHUB_TOKEN`.
+
+`GITHUB_TOKEN` is **server-only** — it is read exclusively by the server-side
+GitHub client and never reaches browser code. The editor shows the account login
+and the repository list, never the token. Optional override for GitHub
+Enterprise Server:
+
+```bash
+GITHUB_API_BASE_URL=https://github.yourcompany.com/api/v3
+```
+
 ## Run Locally
 
 Start the dev server:
@@ -158,7 +180,7 @@ http://localhost:3000
 2. Create `.env.local` from `.env.example`.
 3. Add your InsForge URL and anon key.
 4. Add `AI_PROVIDER`, `AI_MODEL`, and `COMETAPI_KEY`.
-5. Optionally add Porsa and InsForge admin values.
+5. Optionally add Porsa, GitHub, and InsForge admin values.
 6. Run `npm run dev`.
 7. Open `http://localhost:3000`.
 8. Sign in or sign up.
@@ -195,6 +217,7 @@ For full backend provisioning and feature setup, see:
 - [docs/vercel-deploy.md](./docs/vercel-deploy.md) — deploy this app to Vercel
 - [docs/billing-setup.md](./docs/billing-setup.md)
 - [docs/shopify-connect-setup.md](./docs/shopify-connect-setup.md) — "Send to Shopify" OAuth
+- [docs/github-setup.md](./docs/github-setup.md) — "Save theme to GitHub"
 - [docs/shopify-export-setup.md](./docs/shopify-export-setup.md)
 - [docs/projects-thumbnails-setup.md](./docs/projects-thumbnails-setup.md)
 - [docs/revisions-setup.md](./docs/revisions-setup.md)
