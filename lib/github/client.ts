@@ -210,8 +210,11 @@ async function getBranchHead(
     );
     return data?.object?.sha ?? null;
   } catch (err) {
-    // 404 here only means "no such branch" — an empty repo has no refs at all.
-    if (err instanceof GitHubError && err.status === 404) return null;
+    // 404 = no such branch. 409 = the repository is still empty (GitHub reports
+    // "Git Repository is empty" with a 409 rather than a 404 for an unborn
+    // branch). Both mean the same thing here: there is no commit to build on,
+    // so the push must create the branch as the repo's first commit.
+    if (err instanceof GitHubError && (err.status === 404 || err.status === 409)) return null;
     throw err;
   }
 }

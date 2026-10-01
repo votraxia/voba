@@ -278,9 +278,6 @@ export default function GitHubPushDialog({
     );
   }
 
-  const repositories = status?.repositories ?? [];
-  const selected = repositories.find((r) => r.fullName === repo);
-
   return dialogShell(
     <div>
       {phase === 'committing' && (

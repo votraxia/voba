@@ -231,6 +231,35 @@ describe('commitThemeFiles', () => {
     expect(refCall?.body).toMatchObject({ sha: 'commit-sha-1234567890', force: false });
   });
 
+  it('treats an empty repository (HTTP 409) as having no branch', async () => {
+    process.env.GITHUB_TOKEN = 'ghp_test';
+    const calls = mockFetch([
+      // GitHub answers 409 "Git Repository is empty" for an unborn branch.
+      {
+        match: /git\/ref\/heads\/main$/,
+        status: 409,
+        payload: { message: 'Git Repository is empty.' },
+      },
+      { match: /git\/trees$/, payload: { sha: 'tree-sha' } },
+      { match: /git\/commits$/, payload: { sha: 'root-commit-sha' } },
+      { match: /git\/refs$/, payload: {} },
+    ]);
+
+    const result = await commitThemeFiles({
+      repo: 'votraxia/shopify-theme-builder',
+      branch: 'main',
+      message: 'First theme',
+      files: FILES,
+    });
+
+    expect(result.createdBranch).toBe(true);
+    // No base tree and no parent: this is the repository's first commit.
+    const treeCall = calls.find((c) => c.url.endsWith('/git/trees'));
+    expect(treeCall?.body).not.toHaveProperty('base_tree');
+    const refCall = calls.find((c) => c.method === 'POST' && c.url.endsWith('/git/refs'));
+    expect(refCall?.body).toEqual({ ref: 'refs/heads/main', sha: 'root-commit-sha' });
+  });
+
   it('creates the branch when it does not exist yet', async () => {
     process.env.GITHUB_TOKEN = 'ghp_test';
     const calls = mockFetch([
