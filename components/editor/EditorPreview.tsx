@@ -185,7 +185,7 @@ export default function EditorPreview({ projectName }: { projectName?: string })
 
   return (
     <section className="flex min-w-0 flex-1 flex-col">
-      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[0_10px_30px_rgba(31,41,55,0.05)]">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-md)]">
         {/* Browser tab strip */}
         <div className="flex items-center gap-1 overflow-x-auto border-b border-line bg-elevated px-2 pt-2">
           {pages.length === 0 && (
@@ -260,7 +260,7 @@ export default function EditorPreview({ projectName }: { projectName?: string })
             {activePage && activeHtml && (
               <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
                 {isImageGenerating && (
-                  <div className="flex items-center gap-2 rounded-lg border border-danger-soft bg-elevated/95 px-3 py-1.5 text-[13px] font-medium text-danger shadow-sm backdrop-blur">
+                  <div className="flex items-center gap-2 rounded-lg border border-danger-soft bg-elevated/95 px-3 py-1.5 text-[13px] font-medium text-danger shadow-[var(--app-shadow-sm)] backdrop-blur">
                     <Loader2 size={15} strokeWidth={2.2} className="animate-spin" />
                     Generating image…
                   </div>
@@ -268,7 +268,7 @@ export default function EditorPreview({ projectName }: { projectName?: string })
                 <button
                   onClick={() => setEditMode((v) => !v)}
                   aria-pressed={editMode}
-                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium shadow-sm transition ${
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium shadow-[var(--app-shadow-sm)] transition ${
                     editMode
                       ? 'border-transparent bg-accent text-accent-fg hover:bg-accent-hover'
                       : 'border-line bg-elevated/90 text-fg-2 backdrop-blur hover:bg-card hover:text-fg'

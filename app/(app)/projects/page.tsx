@@ -197,7 +197,7 @@ function ProjectCard({
 
   return (
     <div
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[0_16px_32px_rgba(31,41,55,0.08)]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-sm)] transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[var(--app-shadow-md)]"
     >
       <Link href={`/editor/${project.id}`} className="relative block aspect-[16/10] w-full overflow-hidden bg-elevated">
         {project.thumbnail_url ? (
@@ -226,12 +226,12 @@ function ProjectCard({
             e.preventDefault();
             setMenuOpen((v) => !v);
           }}
-          className="grid h-8 w-8 place-items-center rounded-lg border border-line bg-elevated/95 text-fg-2 opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 hover:text-fg focus:opacity-100"
+          className="grid h-8 w-8 place-items-center rounded-lg border border-line bg-elevated/95 text-fg-2 opacity-0 shadow-[var(--app-shadow-sm)] backdrop-blur transition group-hover:opacity-100 hover:text-fg focus:opacity-100"
         >
           <MoreVertical size={15} strokeWidth={2} />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 top-9 w-44 overflow-hidden rounded-xl border border-line bg-card p-1 shadow-[0_18px_40px_rgba(31,41,55,0.14)]">
+          <div className="absolute right-0 top-9 w-44 overflow-hidden rounded-xl border border-line bg-card p-1 shadow-[var(--app-shadow-md)]">
             <button
               onClick={() => {
                 setMenuOpen(false);

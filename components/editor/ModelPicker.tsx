@@ -100,7 +100,7 @@ export default function ModelPicker() {
               ? `${getAIModelLabel(lockedModel)} is a Pro model — upgrade to use it`
               : `AI model: ${getAIModelLabel(activeModel ?? aiModel)}`
         }
-        className="flex h-11 items-center gap-2 rounded-xl border border-line bg-card px-3 text-sm font-medium text-accent-fg shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex h-11 items-center gap-2 rounded-xl border border-line bg-card px-3 text-sm font-medium text-accent-fg shadow-[var(--app-shadow-sm)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
       >
         {lockedModel ? (
           <Lock size={16} strokeWidth={2} className="shrink-0 text-muted" />
@@ -118,7 +118,7 @@ export default function ModelPicker() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 overflow-hidden rounded-2xl border border-line bg-card p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 overflow-hidden rounded-2xl border border-line bg-card p-2 shadow-[var(--app-shadow-md)]">
           <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
             AI model
           </p>

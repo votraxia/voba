@@ -154,7 +154,7 @@ export default function GitHubPushDialog({
           role="dialog"
           aria-modal="true"
           aria-label="Save theme to GitHub"
-          className="w-[min(32rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-card shadow-[0_32px_64px_rgba(31,41,55,0.24)]"
+          className="w-[min(32rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-lg)]"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b border-line px-5 py-4">

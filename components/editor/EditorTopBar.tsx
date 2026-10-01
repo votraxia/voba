@@ -227,7 +227,7 @@ export default function EditorTopBar({
           <button
             onClick={() => setMenuOpen((open) => !open)}
             disabled={dialogOpen || busy !== null}
-            className="flex h-11 items-center gap-2 rounded-xl border border-line bg-card px-4 text-sm font-medium text-accent-fg shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-11 items-center gap-2 rounded-xl border border-line bg-card px-4 text-sm font-medium text-accent-fg shadow-[var(--app-shadow-sm)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
           >
             {busy ? (
               <>
@@ -248,7 +248,7 @@ export default function EditorTopBar({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-2xl border border-line bg-card p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-2xl border border-line bg-card p-2 shadow-[var(--app-shadow-md)]">
               <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
                 Export options
               </p>
@@ -277,7 +277,7 @@ export default function EditorTopBar({
           )}
 
           {exportError && !menuOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-72 rounded-xl border border-danger-soft bg-danger-soft px-3.5 py-2.5 text-[12px] text-danger shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-72 rounded-xl border border-danger-soft bg-danger-soft px-3.5 py-2.5 text-[12px] text-danger shadow-[var(--app-shadow-md)]">
               {exportError}
             </div>
           )}
@@ -290,7 +290,7 @@ export default function EditorTopBar({
             disabled={saving || busy !== null}
             aria-label="Version history"
             title={revisions.length > 0 ? 'Version history' : 'No saved versions yet'}
-            className="relative grid h-11 w-11 place-items-center rounded-xl border border-line bg-card text-accent-fg-2 shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+            className="relative grid h-11 w-11 place-items-center rounded-xl border border-line bg-card text-accent-fg-2 shadow-[var(--app-shadow-sm)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
           >
             <History size={17} strokeWidth={1.9} />
             {revisions.length > 0 && (
@@ -301,7 +301,7 @@ export default function EditorTopBar({
           </button>
 
           {historyOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[420px] w-80 overflow-y-auto rounded-2xl border border-line bg-card p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[420px] w-80 overflow-y-auto rounded-2xl border border-line bg-card p-2 shadow-[var(--app-shadow-md)]">
               <div className="flex items-center justify-between px-3 py-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
                   Version history
@@ -371,13 +371,13 @@ export default function EditorTopBar({
 
       {saveError && (
         <div className="pointer-events-none absolute inset-x-0 top-16 z-40 flex justify-center">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-danger-soft bg-danger-soft px-4 py-2.5 text-[13px] font-medium text-danger shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-danger-soft bg-danger-soft px-4 py-2.5 text-[13px] font-medium text-danger shadow-[var(--app-shadow-md)]">
             <span>
               Your last change couldn&apos;t be saved. It&apos;s still in the preview — try Save again.
             </span>
             <button
               onClick={() => void handleSave()}
-              className="rounded-lg bg-danger px-3 py-1 text-xs font-semibold text-fg transition hover:bg-[#a83a28]"
+              className="rounded-lg bg-danger px-3 py-1 text-xs font-semibold text-inverse transition hover:opacity-90"
             >
               Retry
             </button>

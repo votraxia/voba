@@ -58,7 +58,7 @@ export default function HeroComposer() {
           event.preventDefault();
           submit();
         }}
-        className="relative mx-auto w-full max-w-[720px] rounded-[26px] border border-line bg-card/[0.08] p-2.5 shadow-[0_28px_70px_rgba(6,9,18,0.5)] backdrop-blur-xl"
+        className="relative mx-auto w-full max-w-[720px] rounded-[26px] border border-line bg-card/[0.08] p-2.5 shadow-[var(--app-shadow-lg)] backdrop-blur-xl"
       >
         <label className="sr-only" htmlFor="landing-prompt">
           Describe the Shopify store you want to build
@@ -93,7 +93,7 @@ export default function HeroComposer() {
             </button>
 
             {menuOpen && (
-              <div className="absolute bottom-12 left-0 z-20 w-[290px] overflow-hidden rounded-2xl border border-line bg-card p-1.5 shadow-[0_24px_50px_rgba(15,23,36,0.28)]">
+              <div className="absolute bottom-12 left-0 z-20 w-[290px] overflow-hidden rounded-2xl border border-line bg-card p-1.5 shadow-[var(--app-shadow-lg)]">
                 <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
                   Start from a page
                 </p>
@@ -170,7 +170,7 @@ export default function HeroComposer() {
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             href="/sign-up"
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-card px-6 text-[14px] font-semibold text-fg shadow-[0_14px_30px_rgba(6,9,18,0.35)] transition hover:bg-elevated/90 sm:w-auto"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-card px-6 text-[14px] font-semibold text-fg shadow-[var(--app-shadow-md)] transition hover:bg-elevated/90 sm:w-auto"
           >
             Create free account
             <ArrowRight size={16} strokeWidth={2.2} />

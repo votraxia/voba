@@ -453,7 +453,7 @@ export default function ProcessWalkthrough() {
       </div>
 
       {/* The product frame */}
-      <div className="mt-5 overflow-hidden rounded-2xl border border-line bg-card shadow-[0_30px_60px_-24px_rgba(31,41,55,0.22)]">
+      <div className="mt-5 overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-lg)]">
         <div className="flex items-center gap-2 border-b border-line bg-elevated px-3.5 py-2.5">
           <span className="h-2 w-2 rounded-full bg-[#ff5f57]/80" />
           <span className="h-2 w-2 rounded-full bg-[#febc2e]/80" />

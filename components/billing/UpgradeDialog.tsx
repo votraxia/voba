@@ -50,7 +50,7 @@ export default function UpgradeDialog({
         if (e.target === e.currentTarget && !busy) onClose();
       }}
     >
-      <div className="w-full max-w-[560px] overflow-hidden rounded-2xl border border-line bg-card shadow-[0_32px_64px_rgba(31,41,55,0.24)]">
+      <div className="w-full max-w-[560px] overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-lg)]">
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-accent-soft text-accent-text">

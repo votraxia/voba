@@ -76,9 +76,9 @@ export default function SidebarBilling() {
   return (
     <div className="mt-6" ref={menuRef}>
       {isPaid ? (
-        <div className="relative rounded-2xl border border-warning-soft bg-gradient-to-br from-[#fff7ec] to-[#fff1e3] p-4">
+        <div className="relative rounded-2xl border border-warning-soft bg-gradient-to-br from-warning-soft to-warning-soft p-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-card text-warning shadow-sm">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-card text-warning shadow-[var(--app-shadow-sm)]">
               <Crown size={18} strokeWidth={1.9} />
             </span>
             <div className="min-w-0">
@@ -125,7 +125,7 @@ export default function SidebarBilling() {
           <button
             type="button"
             onClick={() => setUpgradeOpen(true)}
-            className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-accent text-[13px] font-semibold text-accent-fg shadow-[0_10px_18px_rgba(255,103,71,0.18)] transition hover:bg-accent-hover"
+            className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-accent text-[13px] font-semibold text-accent-fg shadow-[0_10px_18px_color-mix(in_srgb,var(--app-accent)_1800%,transparent)] transition hover:bg-accent-hover"
           >
             <Sparkles size={14} fill="currentColor" strokeWidth={1.5} />
             Upgrade
@@ -134,7 +134,7 @@ export default function SidebarBilling() {
       )}
 
       {menuOpen && (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-line bg-card p-1.5 shadow-[0_20px_40px_rgba(31,41,55,0.14)]">
+        <div className="mt-2 overflow-hidden rounded-2xl border border-line bg-card p-1.5 shadow-[var(--app-shadow-md)]">
           <Link
             href="/billing"
             onClick={() => setMenuOpen(false)}

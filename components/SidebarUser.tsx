@@ -45,7 +45,7 @@ export default function SidebarUser() {
         </p>
         <Link
           href="/sign-in"
-          className="grid h-10 place-items-center rounded-xl bg-accent text-[15px] font-medium text-accent-fg shadow-[0_12px_22px_rgba(255,103,71,0.18)] transition hover:bg-accent-hover"
+          className="grid h-10 place-items-center rounded-xl bg-accent text-[15px] font-medium text-accent-fg shadow-[0_12px_22px_color-mix(in_srgb,var(--app-accent)_1800%,transparent)] transition hover:bg-accent-hover"
         >
           Sign in
         </Link>

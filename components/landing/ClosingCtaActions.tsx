@@ -17,7 +17,7 @@ export default function ClosingCtaActions() {
       <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Link
           href="/sign-up"
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[15px] font-semibold text-accent-fg shadow-[0_18px_36px_rgba(255,103,71,0.32)] transition hover:bg-accent-hover sm:w-auto"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[15px] font-semibold text-accent-fg shadow-[0_18px_36px_color-mix(in_srgb,var(--app-accent)_3200%,transparent)] transition hover:bg-accent-hover sm:w-auto"
         >
           Create free account
           <ArrowRight size={18} strokeWidth={2.2} />
@@ -36,7 +36,7 @@ export default function ClosingCtaActions() {
     <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
       <Link
         href="/dashboard"
-        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[15px] font-semibold text-accent-fg shadow-[0_18px_36px_rgba(255,103,71,0.32)] transition hover:bg-accent-hover sm:w-auto"
+        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[15px] font-semibold text-accent-fg shadow-[0_18px_36px_color-mix(in_srgb,var(--app-accent)_3200%,transparent)] transition hover:bg-accent-hover sm:w-auto"
       >
         Open dashboard
         <ArrowRight size={18} strokeWidth={2.2} />

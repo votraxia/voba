@@ -7,7 +7,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const shadowStyles = {
-  sm: 'shadow-sm',
+  sm: 'shadow-[var(--app-shadow-sm)]',
   md: 'shadow-md',
   lg: 'shadow-lg',
   xl: 'shadow-xl',

@@ -107,7 +107,7 @@ export default function EditorChatPanel() {
       </div>
 
       <div className="border-t border-line p-4">
-        <div className="rounded-2xl border border-line bg-card p-3 shadow-[0_10px_24px_rgba(31,41,55,0.05)]">
+        <div className="rounded-2xl border border-line bg-card p-3 shadow-[var(--app-shadow-sm)]">
           <textarea
             aria-label="Ask anything about your theme"
             placeholder="Ask anything about your theme..."
@@ -128,7 +128,7 @@ export default function EditorChatPanel() {
               aria-label="Send message"
               onClick={submit}
               disabled={isStreaming || !draft.trim()}
-              className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-fg shadow-[0_10px_18px_rgba(255,103,71,0.22)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-fg shadow-[0_10px_18px_color-mix(in_srgb,var(--app-accent)_2200%,transparent)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isStreaming ? (
                 <Loader2 size={17} strokeWidth={2.2} className="animate-spin" />
@@ -146,7 +146,7 @@ export default function EditorChatPanel() {
 function Dot({ delay = '0ms' }: { delay?: string }) {
   return (
     <span
-      className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[#c5bfd8]"
+      className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-muted"
       style={{ animationDelay: delay }}
     />
   );

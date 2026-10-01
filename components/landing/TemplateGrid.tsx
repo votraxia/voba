@@ -21,7 +21,7 @@ export default function TemplateGrid() {
             key={point.id}
             type="button"
             onClick={() => applyStartingPoint(point.prompt)}
-            className="group flex h-full flex-col rounded-2xl border border-line bg-card p-5 text-left shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[0_18px_36px_rgba(31,41,55,0.08)]"
+            className="group flex h-full flex-col rounded-2xl border border-line bg-card p-5 text-left shadow-[var(--app-shadow-sm)] transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[var(--app-shadow-md)]"
           >
             <span className={`grid h-11 w-11 place-items-center rounded-xl ${point.colour}`}>
               <Icon size={20} strokeWidth={1.9} />

@@ -119,7 +119,7 @@ export default function LandingPage() {
         />
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_16%_94%,color-mix(in_srgb,var(--app-accent)_34%,transparent),transparent_58%),radial-gradient(90%_60%_at_88%_6%,color-mix(in_srgb,var(--app-accent)_18%,transparent),transparent_60%),linear-gradient(180deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.35)_38%,rgba(0,0,0,0.6)_100%)]"
+          className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_16%_94%,color-mix(in_srgb,var(--app-accent)_34%,transparent),transparent_58%),radial-gradient(90%_60%_at_88%_6%,color-mix(in_srgb,var(--app-accent)_18%,transparent),transparent_60%),linear-gradient(180deg,color-mix(in_srgb,var(--app-bg)_88%,transparent)_0%,color-mix(in_srgb,var(--app-bg)_70%,transparent)_38%,color-mix(in_srgb,var(--app-bg)_94%,transparent)_100%)]"
         />
 
         <div className="relative z-10 mx-auto w-full max-w-[860px] text-center">
@@ -294,7 +294,7 @@ export default function LandingPage() {
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              'linear-gradient(to right, rgba(148,163,184,0.055) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.055) 1px, transparent 1px)',
+              'linear-gradient(to right, var(--app-line) 1px, transparent 1px), linear-gradient(to bottom, var(--app-line) 1px, transparent 1px)',
             backgroundSize: '56px 56px',
             maskImage: 'radial-gradient(ellipse 80% 70% at 50% 38%, black 30%, transparent 78%)',
             WebkitMaskImage: 'radial-gradient(ellipse 80% 70% at 50% 38%, black 30%, transparent 78%)',
@@ -369,16 +369,16 @@ export default function LandingPage() {
               className="absolute -inset-x-10 -top-10 bottom-1/3 bg-[radial-gradient(55%_55%_at_50%_35%,color-mix(in_srgb,var(--app-accent)_16%,transparent),transparent_70%)]"
             />
 
-            <div className="absolute -right-2 -top-4 z-10 hidden items-center gap-1.5 rounded-full border border-line bg-card/95 px-3 py-1.5 text-[12px] font-medium text-fg/75 shadow-[0_14px_34px_rgba(0,0,0,0.5)] backdrop-blur lg:flex">
+            <div className="absolute -right-2 -top-4 z-10 hidden items-center gap-1.5 rounded-full border border-line bg-card/95 px-3 py-1.5 text-[12px] font-medium text-fg/75 shadow-[var(--app-shadow-lg)] backdrop-blur lg:flex">
               <SlidersHorizontal size={12} strokeWidth={2.2} className="text-accent-text" />
               Edit everything visually
             </div>
-            <div className="absolute -bottom-4 -left-2 z-10 hidden items-center gap-1.5 rounded-full border border-line bg-card/95 px-3 py-1.5 text-[12px] font-medium text-fg/75 shadow-[0_14px_34px_rgba(0,0,0,0.5)] backdrop-blur lg:flex">
+            <div className="absolute -bottom-4 -left-2 z-10 hidden items-center gap-1.5 rounded-full border border-line bg-card/95 px-3 py-1.5 text-[12px] font-medium text-fg/75 shadow-[var(--app-shadow-lg)] backdrop-blur lg:flex">
               <MousePointerClick size={12} strokeWidth={2.2} className="text-success" />
               Click a section to edit it
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-line bg-card shadow-[0_48px_90px_-30px_rgba(0,0,0,0.65)]">
+            <div className="overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-lg)]">
               <div className="flex items-center gap-2 border-b border-line bg-elevated px-4 py-3">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80" />
                 <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
@@ -462,7 +462,7 @@ export default function LandingPage() {
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-[10px] font-medium text-fg-2">Show cart link</p>
                       <span className="relative inline-flex h-4 w-7 shrink-0 items-center rounded-full bg-accent">
-                        <span className="absolute right-0.5 h-3 w-3 rounded-full bg-card shadow-sm" />
+                        <span className="absolute right-0.5 h-3 w-3 rounded-full bg-card shadow-[var(--app-shadow-sm)]" />
                       </span>
                     </div>
 
@@ -536,7 +536,7 @@ export default function LandingPage() {
                   className={`flex h-full flex-col rounded-[20px] p-7 lg:p-8 ${
                     highlighted
                       ? 'bg-card'
-                      : 'border border-line bg-card shadow-[0_10px_24px_rgba(31,41,55,0.04)]'
+                      : 'border border-line bg-card shadow-[var(--app-shadow-md)]'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">

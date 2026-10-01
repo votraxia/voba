@@ -193,7 +193,7 @@ export default function PageShowcase() {
             className="group text-left"
           >
             {/* The page itself, drawn to scale */}
-            <div className="overflow-hidden rounded-xl border border-line bg-card shadow-[0_10px_24px_rgba(31,41,55,0.05)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_22px_44px_rgba(31,41,55,0.12)]">
+            <div className="overflow-hidden rounded-xl border border-line bg-card shadow-[var(--app-shadow-sm)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[var(--app-shadow-md)]">
               <Render />
             </div>
 

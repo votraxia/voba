@@ -26,7 +26,7 @@ function RevisionVisual() {
   ];
 
   return (
-    <div className="w-full max-w-[300px] overflow-hidden rounded-xl border border-line bg-card shadow-[0_18px_40px_rgba(31,41,55,0.08)]">
+    <div className="w-full max-w-[300px] overflow-hidden rounded-xl border border-line bg-card shadow-[var(--app-shadow-md)]">
       <div className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
         <span className="text-[11.5px] font-semibold text-fg">Version history</span>
         <span className="rounded-full bg-elevated px-2 py-0.5 text-[9.5px] font-medium text-muted">
@@ -125,7 +125,7 @@ function SandboxVisual() {
   const blocked = ['<script>', 'eval()', 'onclick handlers', 'remote fetch'];
 
   return (
-    <div className="w-full max-w-[320px] overflow-hidden rounded-xl border border-line bg-card shadow-[0_18px_40px_rgba(31,41,55,0.08)]">
+    <div className="w-full max-w-[320px] overflow-hidden rounded-xl border border-line bg-card shadow-[var(--app-shadow-md)]">
       {/* Fake browser chrome with the sandbox origin, which is the actual trick */}
       <div className="flex items-center gap-2 border-b border-line bg-elevated px-3 py-2.5">
         <span className="h-2 w-2 rounded-full bg-[#ff5f57]/80" />
@@ -169,7 +169,7 @@ function SelectorVisual() {
   ];
 
   return (
-    <div className="w-full max-w-[300px] overflow-hidden rounded-xl border border-line bg-card shadow-[0_18px_40px_rgba(31,41,55,0.08)]">
+    <div className="w-full max-w-[300px] overflow-hidden rounded-xl border border-line bg-card shadow-[var(--app-shadow-md)]">
       <div className="border-b border-line px-3.5 py-2.5">
         <span className="text-[11.5px] font-semibold text-fg">Featured collection</span>
       </div>

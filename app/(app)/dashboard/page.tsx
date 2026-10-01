@@ -97,7 +97,7 @@ export default function DashboardPage() {
             event.preventDefault();
             void startProject(prompt);
           }}
-          className="rounded-2xl border border-line bg-card p-4 shadow-[0_18px_40px_rgba(31,41,55,0.07)]"
+          className="rounded-2xl border border-line bg-card p-4 shadow-[var(--app-shadow-md)]"
         >
           <textarea
             ref={promptRef}
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => applySuggestion(point.prompt)}
                 disabled={submitting}
-                className="group flex min-h-[100px] items-center justify-between gap-4 rounded-2xl border border-line bg-card p-4 text-left shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:border-accent-line hover:shadow-[0_16px_32px_rgba(31,41,55,0.06)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group flex min-h-[100px] items-center justify-between gap-4 rounded-2xl border border-line bg-card p-4 text-left shadow-[var(--app-shadow-sm)] transition hover:border-accent-line hover:shadow-[var(--app-shadow-md)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <div className="flex items-center gap-4">
                   <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-xl ${point.colour}`}>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
                     </span>
                   </span>
                 </div>
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-fg transition group-hover:translate-x-1 group-hover:border-[#ffb8a6] group-hover:text-accent-text">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-fg transition group-hover:translate-x-1 group-hover:border-accent-line group-hover:text-accent-text">
                   <ArrowRight size={19} strokeWidth={1.8} />
                 </span>
               </button>

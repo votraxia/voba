@@ -181,7 +181,7 @@ export default function ExportDialog({
           role="dialog"
           aria-modal="true"
           aria-label="Export to Shopify"
-          className="flex max-h-[min(720px,calc(100vh-2rem))] w-[min(42rem,calc(100vw-2rem))] min-w-[320px] flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[0_32px_64px_rgba(31,41,55,0.24)]"
+          className="flex max-h-[min(720px,calc(100vh-2rem))] w-[min(42rem,calc(100vw-2rem))] min-w-[320px] flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[var(--app-shadow-lg)]"
           onMouseDown={(e) => e.stopPropagation()}
         >
           {/* Header */}

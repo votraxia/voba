@@ -135,7 +135,7 @@ export default function SiteHeader() {
               <Link
                 href="/dashboard"
                 onClick={() => setMenuOpen(false)}
-                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold text-accent-fg shadow-[0_10px_20px_rgba(255,103,71,0.24)]"
+                className="inline-flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold text-accent-fg shadow-[0_10px_20px_color-mix(in_srgb,var(--app-accent)_2400%,transparent)]"
               >
                 Open dashboard
               </Link>
@@ -151,7 +151,7 @@ export default function SiteHeader() {
                 <Link
                   href="/sign-up"
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-accent text-[15px] font-semibold text-accent-fg shadow-[0_10px_20px_rgba(255,103,71,0.24)]"
+                  className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-accent text-[15px] font-semibold text-accent-fg shadow-[0_10px_20px_color-mix(in_srgb,var(--app-accent)_2400%,transparent)]"
                 >
                   Start building
                 </Link>

@@ -17,7 +17,7 @@ export default function AuthShell({
 }: AuthShellProps) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-app px-4 py-10">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_18%,rgba(255,116,82,0.12),transparent_26%),radial-gradient(circle_at_14%_82%,rgba(125,158,255,0.12),transparent_28%),linear-gradient(135deg,rgba(247,250,255,0.86)_0%,rgba(255,245,241,0.9)_52%,rgba(255,255,255,0.98)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_18%,color-mix(in_srgb,var(--app-accent)_12%,transparent),transparent_26%),radial-gradient(circle_at_14%_82%,color-mix(in_srgb,var(--app-info)_14%,transparent),transparent_28%),linear-gradient(135deg,color-mix(in srgb,var(--app-surface)_86%,transparent)_0%,color-mix(in_srgb,var(--app-fg)_90%,transparent)_52%,var(--app-surface)_100%)]" />
 
       <div className="relative w-full max-w-[420px]">
         <Link href="/" className="mb-7 flex items-center justify-center gap-3">
@@ -35,7 +35,7 @@ export default function AuthShell({
           </div>
         </Link>
 
-        <div className="rounded-2xl border border-line bg-card p-7 shadow-[0_18px_40px_rgba(31,41,55,0.07)]">
+        <div className="rounded-2xl border border-line bg-card p-7 shadow-[var(--app-shadow-md)]">
           <div className="mb-6 text-center">
             <h1 className="text-2xl font-bold leading-8 text-fg">{title}</h1>
             <p className="mt-1.5 text-sm leading-5 text-fg-2">{subtitle}</p>

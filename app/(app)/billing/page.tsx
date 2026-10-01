@@ -150,7 +150,7 @@ export default function BillingPage() {
         )}
 
         {/* Current plan summary */}
-        <section className="mb-6 rounded-2xl border border-line bg-card p-6 shadow-[0_10px_24px_rgba(31,41,55,0.035)]">
+        <section className="mb-6 rounded-2xl border border-line bg-card p-6 shadow-[var(--app-shadow-sm)]">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <span
@@ -243,7 +243,7 @@ export default function BillingPage() {
 
         {/* Usage */}
         <section id="usage" className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="rounded-2xl border border-line bg-card p-6 shadow-[0_10px_24px_rgba(31,41,55,0.035)]">
+          <div className="rounded-2xl border border-line bg-card p-6 shadow-[var(--app-shadow-sm)]">
             <p className="text-sm font-semibold text-fg">Project usage</p>
             <p className="mt-1 text-2xl font-bold text-fg">
               {projectCount}
@@ -262,7 +262,7 @@ export default function BillingPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-line bg-card p-6 shadow-[0_10px_24px_rgba(31,41,55,0.035)]">
+          <div className="rounded-2xl border border-line bg-card p-6 shadow-[var(--app-shadow-sm)]">
             <p className="text-sm font-semibold text-fg">Shopify export</p>
             <div className="mt-3 flex items-center gap-2">
               <span
@@ -295,7 +295,7 @@ export default function BillingPage() {
               return (
                 <div
                   key={id}
-                  className={`flex flex-col rounded-2xl border bg-card p-5 shadow-[0_10px_24px_rgba(31,41,55,0.035)] ${
+                  className={`flex flex-col rounded-2xl border bg-card p-5 shadow-[var(--app-shadow-sm)] ${
                     isCurrent ? 'border-accent ring-1 ring-accent-line' : 'border-line'
                   }`}
                 >
