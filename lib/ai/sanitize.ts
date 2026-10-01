@@ -8,8 +8,7 @@
  */
 
 import { previewEditorScript } from './preview-editor';
-import { applyImageKitToHtml } from '@/lib/images/rewrite';
-import { IMAGEKIT_URL_ENDPOINT } from '@/lib/images/imagekit';
+import { applyUnsplashToHtml } from '@/lib/images/rewrite';
 
 /** Remove scripts, event handlers, and unsafe URLs from model-generated HTML. */
 export function sanitizeGeneratedHtml(raw: string): string {
@@ -34,9 +33,12 @@ export function sanitizeGeneratedHtml(raw: string): string {
   // Drop <style> blocks — styling must come from Tailwind classes only.
   html = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
 
-  // Swap placeholder / data-ik-prompt <img> sources for ImageKit gen-image URLs
-  // (no-op when ImageKit isn't configured). Runs last so it acts on clean HTML.
-  html = applyImageKitToHtml(html);
+  // Legacy ImageKit marker from any persisted HTML — strip it.
+  html = html.replace(/\sdata-ik-prompt\s*=\s*("[^"]*"|'[^']*')/gi, '');
+
+  // Normalize image slots the model requested (markers for the async Unsplash
+  // resolver; no network I/O here).
+  html = applyUnsplashToHtml(html);
 
   return html.trim();
 }
@@ -72,10 +74,7 @@ export function sanitizeThemeCss(raw: string): string {
  * export, per AGENTS.md §10.)
  */
 export function buildPreviewShell(): string {
-  // Public delivery endpoint only — safe to expose to the sandboxed iframe. It
-  // powers in-preview "Generate image" + AI transforms and carries no secret.
-  const ikEndpoint = IMAGEKIT_URL_ENDPOINT;
-  // A neutral inline SVG shown when an ImageKit image fails or times out.
+  // A neutral inline SVG shown when an image fails or times out.
   const fallbackImg =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
@@ -96,14 +95,13 @@ export function buildPreviewShell(): string {
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body{margin:0}
-  /* Loading shimmer behind every image so a slow ImageKit generation shows a
+  /* Loading shimmer behind every image so a slow Unsplash photo shows a
      placeholder instead of a blank gap; the opaque image covers it once loaded. */
-  @keyframes __ik_pulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  body img{background-image:linear-gradient(100deg,#f1ede9 30%,#e7e0d9 50%,#f1ede9 70%);background-size:200% 100%;animation:__ik_pulse 1.3s ease-in-out infinite;}
-  body img.__ik-ready{background-image:none;animation:none;}
+  @keyframes __img_pulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  body img{background-image:linear-gradient(100deg,#f1ede9 30%,#e7e0d9 50%,#f1ede9 70%);background-size:200% 100%;animation:__img_pulse 1.3s ease-in-out infinite;}
+  body img.__img-ready{background-image:none;animation:none;}
 </style>
 <style id="__builder_theme__"></style>
-<script>window.__IK_ENDPOINT__ = ${JSON.stringify(ikEndpoint)};</script>
 <script>${previewEditorScript()}</script>
 <script>
   (function () {
@@ -116,11 +114,11 @@ export function buildPreviewShell(): string {
       var imgs = document.body ? document.body.querySelectorAll('img') : [];
       for (var i = 0; i < imgs.length; i++) {
         (function (img) {
-          if (img.getAttribute('data-ik-fb') === 'watched') return;
-          img.setAttribute('data-ik-fb', 'watched');
-          function ready() { img.classList.add('__ik-ready'); }
+          if (img.getAttribute('data-img-fb') === 'watched') return;
+          img.setAttribute('data-img-fb', 'watched');
+          function ready() { img.classList.add('__img-ready'); }
           function fail() {
-            img.classList.add('__ik-ready');
+            img.classList.add('__img-ready');
             if (img.getAttribute('src') !== FALLBACK) img.src = FALLBACK;
           }
           if (img.complete && img.naturalWidth > 0) { ready(); return; }
@@ -129,9 +127,9 @@ export function buildPreviewShell(): string {
         })(imgs[i]);
       }
     }
-    // Let the inline editor re-watch images it adds or re-points (Generate image,
-    // AI transforms) so they get the same shimmer + fallback treatment.
-    window.__ikDecorate = decorateImages;
+    // Let the inline editor re-watch images it adds or re-points (Find image,
+    // URL paste) so they get the same shimmer + fallback treatment.
+    window.__decorateImages = decorateImages;
     window.addEventListener('message', function (event) {
       var data = event && event.data;
       if (!data) return;

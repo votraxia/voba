@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { FolderOpen, ImageOff, Loader2, Plus } from 'lucide-react';
+import { FolderOpen, ImageOff, Loader2, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '@/components';
-import { listProjects, type Project } from '@/lib/projects';
+import { deleteProject, listProjects, renameProject, type Project } from '@/lib/projects';
 import { ensureProjectThumbnail } from '@/lib/thumbnail';
 
 type LoadState = 'loading' | 'ready' | 'error';
@@ -72,7 +72,7 @@ export default function ProjectsPage() {
             </p>
           </div>
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white shadow-[0_12px_22px_rgba(255,103,71,0.2)] transition hover:bg-[#f85b3a]"
           >
             <Plus size={17} strokeWidth={2.2} />
@@ -106,11 +106,11 @@ export default function ProjectsPage() {
               <div>
                 <h2 className="text-base font-bold text-[#111827]">No projects yet</h2>
                 <p className="mt-1 text-sm text-[#6b7280]">
-                  Describe a Shopify page on the home screen to create your first one.
+                  Describe a Shopify page from the home screen to create your first one.
                 </p>
               </div>
               <Link
-                href="/"
+                href="/dashboard"
                 className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
               >
                 <Plus size={17} strokeWidth={2.2} />
@@ -123,7 +123,16 @@ export default function ProjectsPage() {
         {state === 'ready' && projects.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onRenamed={(id, name) =>
+                  setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)))
+                }
+                onDeleted={(id) => {
+                  setProjects((prev) => prev.filter((p) => p.id !== id));
+                }}
+              />
             ))}
           </div>
         )}
@@ -132,13 +141,65 @@ export default function ProjectsPage() {
   );
 }
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({
+  project,
+  onRenamed,
+  onDeleted,
+}: {
+  project: Project;
+  onRenamed: (id: string, name: string) => void;
+  onDeleted: (id: string) => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState(project.name);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
+
+  async function submitRename() {
+    const next = nameDraft.trim();
+    if (!next || next === project.name) {
+      setRenaming(false);
+      return;
+    }
+    try {
+      await renameProject(project.id, next);
+      onRenamed(project.id, next);
+    } catch {
+      // Keep the old name on failure.
+    } finally {
+      setRenaming(false);
+    }
+  }
+
+  async function submitDelete() {
+    setDeleting(true);
+    try {
+      await deleteProject(project.id);
+      onDeleted(project.id);
+    } catch {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  }
+
   return (
-    <Link
-      href={`/editor/${project.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-[#eee7e3] bg-white shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-[#ffd4c7] hover:shadow-[0_16px_32px_rgba(31,41,55,0.08)]"
+    <div
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#eee7e3] bg-white shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-[#ffd4c7] hover:shadow-[0_16px_32px_rgba(31,41,55,0.08)]"
     >
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#f6f2ef]">
+      <Link href={`/editor/${project.id}`} className="relative block aspect-[16/10] w-full overflow-hidden bg-[#f6f2ef]">
         {project.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- remote InsForge Storage URL, not optimizable at build time.
           <img
@@ -155,16 +216,97 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
         )}
+      </Link>
+
+      {/* Card menu */}
+      <div className="absolute right-3 top-3 z-10" ref={menuRef}>
+        <button
+          aria-label={`Options for ${project.name}`}
+          onClick={(e) => {
+            e.preventDefault();
+            setMenuOpen((v) => !v);
+          }}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-[#eee7e3] bg-white/95 text-[#6b7280] opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 hover:text-[#111827] focus:opacity-100"
+        >
+          <MoreVertical size={15} strokeWidth={2} />
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 top-9 w-44 overflow-hidden rounded-xl border border-[#eee7e3] bg-white p-1 shadow-[0_18px_40px_rgba(31,41,55,0.14)]">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setNameDraft(project.name);
+                setRenaming(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[#111827] transition hover:bg-[#fff3ef]"
+            >
+              <Pencil size={14} strokeWidth={2} /> Rename
+            </button>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setConfirmDelete(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[#b4432a] transition hover:bg-[#fff4f1]"
+            >
+              <Trash2 size={14} strokeWidth={2} /> Delete
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-4">
-        <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[#111827]">
-          {project.name}
-        </h3>
+        {renaming ? (
+          <input
+            value={nameDraft}
+            autoFocus
+            onChange={(e) => setNameDraft(e.target.value)}
+            onBlur={submitRename}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void submitRename();
+              if (e.key === 'Escape') setRenaming(false);
+            }}
+            className="w-full rounded-lg border border-[#ffd4c7] bg-white px-2 py-1 text-[15px] font-bold text-[#111827] outline-none focus:border-[#ff6747]"
+          />
+        ) : (
+          <Link href={`/editor/${project.id}`}>
+            <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[#111827]">
+              {project.name}
+            </h3>
+          </Link>
+        )}
         <p className="mt-auto pt-2 text-xs font-medium text-[#9aa2af]">
           Created {formatCreatedAt(project.created_at)}
         </p>
       </div>
-    </Link>
+
+      {confirmDelete && (
+        <div className="absolute inset-0 z-20 grid place-items-center bg-white/95 p-6 text-center">
+          <div>
+            <h4 className="text-sm font-bold text-[#111827]">Delete “{project.name}”?</h4>
+            <p className="mt-1 text-xs text-[#6b7280]">
+              This permanently removes the project, its pages, and its exports.
+            </p>
+            <div className="mt-4 flex justify-center gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={deleting}
+                className="h-9 rounded-lg border border-[#e8e2de] bg-white px-4 text-xs font-semibold text-[#374151] transition hover:bg-[#faf8f6] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void submitDelete()}
+                disabled={deleting}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#dc2626] px-4 text-xs font-semibold text-white transition hover:bg-[#b91c1c] disabled:opacity-50"
+              >
+                {deleting && <Loader2 size={13} className="animate-spin" />}
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

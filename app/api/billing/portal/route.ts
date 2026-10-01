@@ -1,15 +1,17 @@
 import { NextRequest } from 'next/server';
 import { bearerToken, getUserFromToken } from '@/lib/billing/admin';
-import { getStripe } from '@/lib/billing/stripe';
-import { appOrigin } from '@/lib/billing/server-utils';
 import { getSubscription } from '@/lib/billing/subscriptions';
 
 export const runtime = 'nodejs';
 
 /**
- * Open the Stripe Customer Portal for the signed-in user so they can manage
- * payment methods, view invoices, switch or cancel their plan. Requires an
- * existing Stripe customer (created during checkout).
+ * Open the billing portal for the signed-in user.
+ *
+ * With Porsa there is no merchant-hosted customer portal session to mint: the
+ * customer's receipts, payment methods, and payment history live in their Porsa
+ * checkout emails and the merchant dashboard. The dashboard URL is returned so
+ * the billing page can link to it; invoice copies are included on every hosted
+ * receipt Porsa sends (Merchant of Record — Porsa owns invoicing).
  */
 export async function POST(req: NextRequest) {
   const user = await getUserFromToken(bearerToken(req));
@@ -18,24 +20,14 @@ export async function POST(req: NextRequest) {
   }
 
   const sub = await getSubscription(user.id);
-  if (!sub?.stripe_customer_id) {
+  if (!sub?.porsa_customer_id) {
     return Response.json(
       { error: 'No billing account yet. Subscribe to a plan first.' },
       { status: 400 }
     );
   }
 
-  try {
-    const stripe = getStripe();
-    const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
-      return_url: `${appOrigin(req)}/billing`,
-    });
-    return Response.json({ url: session.url });
-  } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : 'Failed to open billing portal.' },
-      { status: 500 }
-    );
-  }
+  return Response.json({
+    url: process.env.PORSA_DASHBOARD_URL ?? 'https://dashboard.porsa.io',
+  });
 }

@@ -1,7 +1,13 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { bearerToken, getAdminClient, getUserFromToken } from '@/lib/billing/admin';
-import { getEntitlement } from '@/lib/billing/subscriptions';
+import {
+  bearerToken,
+  getAdminClient,
+  getUserFromToken,
+  getUserScopedClient,
+  hasAdminKey,
+} from '@/lib/billing/admin';
+import { getEntitlement, getEntitlementUserScoped } from '@/lib/billing/subscriptions';
 
 export const runtime = 'nodejs';
 
@@ -33,7 +39,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const entitlement = await getEntitlement(user.id);
+    // Authoritative limit check. With the admin key we use the admin client
+    // (full entitlement); without it we degrade gracefully to a user-scoped
+    // read (RLS) so project creation still enforces the Free-plan limit rather
+    // than hard-failing on a missing server credential.
+    const token = bearerToken(req);
+    const entitlement = hasAdminKey()
+      ? await getEntitlement(user.id)
+      : await getEntitlementUserScoped(token ?? '', user.id);
     if (!entitlement.canCreateProject) {
       return Response.json(
         {
@@ -50,8 +63,13 @@ export async function POST(req: NextRequest) {
     }
 
     const id = crypto.randomUUID();
-    const { data, error } = await getAdminClient()
-      .database.from('projects')
+    // Insert through the user-scoped client when no admin key is configured:
+    // RLS pins `user_id` to the caller, keeping ownership correct.
+    const db = hasAdminKey()
+      ? getAdminClient().database
+      : getUserScopedClient(token ?? '').database;
+    const { data, error } = await db
+      .from('projects')
       .insert([
         {
           id,

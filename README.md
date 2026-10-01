@@ -9,9 +9,9 @@ AI Shopify Theme Builder is a Next.js app for generating Shopify storefront conc
 - Node.js 20 or newer
 - npm
 - An InsForge project
-- A Gemini API key
-- Optional: an ImageKit account
-- Optional: a Stripe account
+- A CometAPI key (https://www.cometapi.com) for the AI models
+- An Unsplash API access key (free — https://unsplash.com/developers)
+- Optional: a Porsa account (https://porsa.io) for billing
 
 ## Install
 
@@ -34,22 +34,28 @@ Then fill in the values below.
 ```bash
 NEXT_PUBLIC_INSFORGE_URL=
 NEXT_PUBLIC_INSFORGE_ANON_KEY=
-AI_PROVIDER=gemini
+AI_PROVIDER=cometapi
 AI_MODEL=gemini-2.5-flash
-GEMINI_API_KEY=
+COMETAPI_KEY=
+UNSPLASH_ACCESS_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### Optional keys
 
 ```bash
-NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
+PORSA_SECRET_KEY=
+PORSA_WEBHOOK_SECRET=
 INSFORGE_ADMIN_KEY=
 NEXT_PUBLIC_INSFORGE_EXPORTS_BUCKET=theme-exports
 NEXT_PUBLIC_INSFORGE_THUMBNAILS_BUCKET=project-thumbnails
+SHOPIFY_CLIENT_ID=
+SHOPIFY_CLIENT_SECRET=
 ```
+
+`SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET` enable "Send to Shopify": the
+merchant connects their store once via OAuth and exported themes are installed
+directly on their store (see [docs/shopify-connect-setup.md](./docs/shopify-connect-setup.md)).
 
 ## How To Get Each API Key
 
@@ -70,37 +76,67 @@ Use this only for server-side features like billing webhooks and enforced projec
 
 Get it from your local InsForge project config or InsForge admin/project settings. Keep it server-only and never expose it in browser code.
 
-### Gemini API key
+### CometAPI key
 
-Create or copy your Gemini key from Google AI Studio, then set:
+All AI calls go through [CometAPI](https://www.cometapi.com), a model aggregator
+that exposes 500+ models (Gemini, GPT, Claude, DeepSeek, Grok, ...) behind one
+OpenAI-compatible endpoint and one key.
 
-- `GEMINI_API_KEY`
+1. Create an account at https://www.cometapi.com and copy an API key from the
+dashboard (https://apidoc.cometapi.com).
+2. Set it as `COMETAPI_KEY`.
 
 Recommended defaults:
 
 ```bash
-AI_PROVIDER=gemini
+AI_PROVIDER=cometapi
 AI_MODEL=gemini-2.5-flash
 ```
 
-### ImageKit endpoint
+`AI_MODEL` accepts any model id from CometAPI's catalog (browse it with
+`GET https://api.cometapi.com/v1/models`). Switching models is an env change
+only — no code changes. `COMETAPI_KEY` is **server-only**; it must never be
+prefixed `NEXT_PUBLIC_` or read from browser code.
 
-If you want ImageKit-backed image delivery and transforms, copy your public URL endpoint from the ImageKit dashboard:
-
-- `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT`
-
-Example:
+Optional overrides:
 
 ```bash
-NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
+COMETAPI_BASE_URL=https://api.cometapi.com/v1
 ```
 
-### Stripe keys
+#### Choosing a model per project
 
-Needed only if you want billing flows locally:
+Each project can use a different model. The editor's top bar has a **model
+picker** backed by a curated catalog in `lib/ai/models.ts` (Gemini, Claude,
+DeepSeek and GPT text models) so a project can trade speed for quality without
+changing any configuration. The choice is saved on the project (`projects.ai_model`)
+and applies to its next generation, edit, and Shopify section conversion.
 
-- `STRIPE_SECRET_KEY`: from Stripe Developers -> API keys
-- `STRIPE_WEBHOOK_SECRET`: from your Stripe webhook endpoint signing secret
+`AI_MODEL` stays the deployment default: it is used for any request that does not
+name a model. The catalog is also the allowlist — the API rejects any model id
+outside it, so a client can never make the server call an arbitrary model.
+
+### Unsplash access key
+
+Photos in generated storefronts come from the Unsplash API. Create a free application at https://unsplash.com/developers, then set:
+
+- `UNSPLASH_ACCESS_KEY`: the application's **Access Key** (server-only — it must never appear in `NEXT_PUBLIC_*` variables or browser code)
+
+Demo keys are rate-limited to 50 API requests/hour, so search results are cached server-side; image delivery itself (`images.unsplash.com`) is unlimited hotlinking and does not count against the quota. Photographer attribution is preserved on every resolved photo per the API guidelines.
+
+### Porsa keys
+
+Needed only if you want billing flows locally. Payments run through
+[Porsa](https://porsa.io), a Merchant-of-Record gateway (mobile money, cards,
+bank transfer, USSD) that hosts the checkout page and handles tax/compliance:
+
+- `PORSA_SECRET_KEY`: the secret API key from your Porsa dashboard (API access
+  requires Porsa's Expansion plan)
+- `PORSA_WEBHOOK_SECRET`: the webhook endpoint's signing secret (see
+  [docs/billing-setup.md](./docs/billing-setup.md))
+
+Recurring billing is one payment per period: paying Monthly buys 30 days and
+Yearly buys 365; the webhook extends the period on each successful payment.
 
 ## Run Locally
 
@@ -121,8 +157,8 @@ http://localhost:3000
 1. Install dependencies with `npm install`.
 2. Create `.env.local` from `.env.example`.
 3. Add your InsForge URL and anon key.
-4. Add `AI_PROVIDER`, `AI_MODEL`, and `GEMINI_API_KEY`.
-5. Optionally add ImageKit, Stripe, and InsForge admin values.
+4. Add `AI_PROVIDER`, `AI_MODEL`, and `COMETAPI_KEY`.
+5. Optionally add Porsa and InsForge admin values.
 6. Run `npm run dev`.
 7. Open `http://localhost:3000`.
 8. Sign in or sign up.
@@ -135,13 +171,47 @@ npm run dev
 npm run build
 npm run start
 npm run lint
+npm run typecheck
+npm run test
+npm run smoke:backend
+npm run smoke:images
 ```
+
+`npm run test` runs the unit suite (sanitizer, scoped-edit patches, Shopify
+theme validation, ZIP writer, rate limiter, Unsplash URL helpers, CometAPI
+response parsing) with no live AI or network calls.
+`npm run smoke:backend` verifies the provisioned InsForge backend end-to-end
+(sign-up, project/page/theme/revision writes under RLS, ownership isolation,
+admin cleanup) — it needs the env vars below and creates + deletes its own
+test data. `npm run smoke:images` checks the live Unsplash image-resolution
+route (auth, hotlink-safe URL, sizing, attribution, cache) against a running
+dev server.
 
 ## Setup Guides
 
 For full backend provisioning and feature setup, see:
 
 - [projectsetup.md](./projectsetup.md)
+- [docs/vercel-deploy.md](./docs/vercel-deploy.md) — deploy this app to Vercel
 - [docs/billing-setup.md](./docs/billing-setup.md)
+- [docs/shopify-connect-setup.md](./docs/shopify-connect-setup.md) — "Send to Shopify" OAuth
 - [docs/shopify-export-setup.md](./docs/shopify-export-setup.md)
 - [docs/projects-thumbnails-setup.md](./docs/projects-thumbnails-setup.md)
+- [docs/revisions-setup.md](./docs/revisions-setup.md)
+
+## InsForge backend (provisioned)
+
+This repo is linked to the InsForge project **AI-Shopify-template-builder**
+(`.insforge/project.json`, CLI: `npx -y @insforge/cli current`). The full SaaS
+schema — `projects`, `project_pages`, `project_messages`, `project_themes`,
+`project_revisions`, `theme_exports`, `subscriptions`, each with owner-only RLS
+via `auth.uid()` — lives in `migrations/` and is applied with:
+
+```bash
+npx -y @insforge/cli db migrations up --all
+```
+
+Public storage buckets: `theme-exports` and `project-thumbnails`.
+`.env.local` carries `NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY`
+(browser-safe), and `INSFORGE_ADMIN_KEY` (server-only, from
+`.insforge/project.json`).

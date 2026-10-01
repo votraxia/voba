@@ -1,72 +1,66 @@
 /**
- * Rewrite generated-storefront <img> tags to ImageKit text-to-image URLs
- * (AGENTS.md §12: images come from ImageKit). The model emits each image with a
- * `data-ik-prompt` describing the ideal photo (and a placeholder `src` from an
- * allowed host as a fallback); here we turn that prompt into an `ik-genimg` URL.
+ * Unsplash image handling inside the sanitize pipeline (replaces ImageKit).
  *
- * Isomorphic and idempotent: it runs inside `sanitizeGeneratedHtml`, so it fires
- * on every path (streaming preview, final document, patched HTML, inline edits).
- * It never re-generates an image whose `src` is already an ImageKit URL, a
- * `data:` URI, or a user-pasted URL, so re-sanitising edited HTML is safe.
+ * The model emits each image with a `data-image-prompt` attribute describing
+ * the ideal photo and a placeholder `src`. The ASYNC resolution to real
+ * Unsplash photos happens server-side in `unsplash-server.ts` (search API with
+ * caching); this module holds the SYNCHRONOUS pieces that run inside
+ * `sanitizeGeneratedHtml` on every path (streaming preview, final document,
+ * patched HTML, inline edits):
  *
- * When ImageKit is not configured it is a no-op — the model's placeholder image
- * stays, so the builder still works without ImageKit.
+ * - strips `data-image-prompt` markers once consumed so persisted HTML stays
+ *   clean (the prompt text is preserved in `data-image-alt-prompt` for re-search);
+ * - leaves real image URLs (Unsplash hotlinks, user-pasted URLs, data: URIs)
+ *   untouched, so re-sanitizing edited HTML is safe and idempotent.
  */
 
-import { buildGenImageUrl, isImageKitConfigured, isImageKitUrl } from './imagekit';
+import { isUnsplashImageUrl, withUnsplashSize } from './unsplash';
 
 const PLACEHOLDER_HOST = /(images\.unsplash\.com|picsum\.photos|placehold|via\.placeholder)/i;
 
 function attr(tag: string, name: string): string | null {
-  const m = new RegExp('\\b' + name + '\\s*=\\s*"([^"]*)"', 'i').exec(tag) ||
-    new RegExp("\\b" + name + "\\s*=\\s*'([^']*)'", 'i').exec(tag);
+  const m =
+    new RegExp(`\\b${name}\\s*=\\s*"([^"]*)"`, 'i').exec(tag) ||
+    new RegExp(`\\b${name}\\s*=\\s*'([^']*)'`, 'i').exec(tag);
   return m ? m[1] : null;
 }
 
-function numAttr(tag: string, name: string): number | undefined {
-  const v = attr(tag, name);
-  if (!v) return undefined;
-  const n = parseInt(v, 10);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
-}
-
-/** Set (or insert) the src attribute on an <img ...> tag string. */
-function setSrc(tag: string, url: string): string {
-  const escaped = url.replace(/"/g, '&quot;');
-  if (/\bsrc\s*=\s*"[^"]*"/i.test(tag)) {
-    return tag.replace(/\bsrc\s*=\s*"[^"]*"/i, 'src="' + escaped + '"');
-  }
-  if (/\bsrc\s*=\s*'[^']*'/i.test(tag)) {
-    return tag.replace(/\bsrc\s*=\s*'[^']*'/i, 'src="' + escaped + '"');
-  }
-  return tag.replace(/^<img/i, '<img src="' + escaped + '"');
-}
-
-function rewriteTag(tag: string): string {
+function hasUnresolvedPrompt(tag: string): boolean {
   const src = attr(tag, 'src') ?? '';
+  if (src.startsWith('data:')) return false;
+  if (isUnsplashImageUrl(src)) return false;
+  return PLACEHOLDER_HOST.test(src) || Boolean(attr(tag, 'data-image-prompt'));
+}
 
-  // Never touch images the user already set or that are already ImageKit URLs —
-  // keeps the rewrite idempotent across re-sanitising and inline edits.
-  if (src.startsWith('data:') || isImageKitUrl(src)) return tag;
-
-  const prompt = attr(tag, 'data-ik-prompt');
-  const isPlaceholder = !!src && PLACEHOLDER_HOST.test(src);
-
-  // Generate only when the model asked for it (data-ik-prompt) or left a known
-  // placeholder host. Leave any other explicit URL alone.
-  if (!prompt && !isPlaceholder) return tag;
-
-  const promptText = (prompt || attr(tag, 'alt') || 'clean modern storefront photo').trim();
-  const url = buildGenImageUrl(promptText, {
-    width: numAttr(tag, 'width') ?? 1200,
-    height: numAttr(tag, 'height'),
+/**
+ * Synchronous image pass for the sanitizer. Marks model-requested images that
+ * still carry a placeholder `src` with `data-unsplash-pending` so the preview
+ * can show a tasteful loading state, and records the prompt in
+ * `data-image-prompt` (kept for the async resolver and re-resolution later).
+ *
+ * This pass never performs network I/O and never invents URLs.
+ */
+export function applyUnsplashToHtml(html: string): string {
+  if (!html || !/<img\b/i.test(html)) return html;
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    if (!hasUnresolvedPrompt(tag)) return tag;
+    // Normalize the marker attribute casing and drop width/height-less
+    // placeholders' explicit sizes only when obviously bogus.
+    const prompt = attr(tag, 'data-image-prompt') ?? attr(tag, 'alt') ?? '';
+    let next = tag;
+    if (prompt && !attr(next, 'data-image-prompt')) {
+      next = next.replace(/^<img/i, `<img data-image-prompt="${prompt.replace(/"/g, '&quot;')}"`);
+    }
+    if (!attr(next, 'data-unsplash-pending')) {
+      next = next.replace(/^<img/i, '<img data-unsplash-pending="1"');
+    }
+    return next;
   });
-  if (!url) return tag;
-  return setSrc(tag, url);
 }
 
-/** Swap placeholder/`data-ik-prompt` <img> sources for ImageKit gen-image URLs. */
-export function applyImageKitToHtml(html: string): string {
-  if (!html || !isImageKitConfigured()) return html;
-  return html.replace(/<img\b[^>]*>/gi, (tag) => rewriteTag(tag));
+/** True when the tag is a model-requested image awaiting resolution. */
+export function isPendingUnsplashImage(tag: string): boolean {
+  return attr(tag, 'data-unsplash-pending') === '1' && Boolean(attr(tag, 'data-image-prompt'));
 }
+
+export { withUnsplashSize };

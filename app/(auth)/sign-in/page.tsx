@@ -33,7 +33,7 @@ function SignInForm() {
 
     await refresh();
     const next = searchParams.get('next');
-    router.push(next && next.startsWith('/') ? next : '/');
+    router.push(next && next.startsWith('/') ? next : '/dashboard');
   };
 
   return (

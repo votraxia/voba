@@ -30,7 +30,9 @@ export default function SignUpPage() {
 
   const finishSignedIn = async () => {
     await refresh();
-    router.push('/');
+    // Land in the builder home (the dashboard restores any prompt the visitor
+    // typed on the landing page before signing up).
+    router.push('/dashboard');
   };
 
   const handleSignUp = async (event: React.FormEvent) => {

@@ -1,12 +1,12 @@
 import 'server-only';
-import { getAdminClient } from './admin';
-import { computeEntitlement } from './entitlements';
+import { getAdminClient, getUserScopedClient, hasAdminKey } from './admin';
+import { computeEntitlement, subscriptionIsActive } from './entitlements';
 import type { BillingInterval, PlanId } from './plans';
 import type { Entitlement, Subscription, SubscriptionStatus } from './types';
 
 /**
  * Server-side `subscriptions` repository. All access uses the admin client
- * (bypasses RLS) because writes happen in the Stripe webhook where there is no
+ * (bypasses RLS) because writes happen in the Porsa webhook where there is no
  * user session, and reads back the row for server-side gating. Keep every query
  * here (AGENTS.md §14) — routes stay thin.
  */
@@ -32,14 +32,14 @@ export async function getSubscription(userId: string): Promise<Subscription | nu
   return unwrap<Subscription>(data);
 }
 
-/** Look up a subscription by its Stripe customer id (used from webhooks). */
+/** Look up a subscription by its Porsa customer id (used from webhooks). */
 export async function getSubscriptionByCustomer(
   customerId: string
 ): Promise<Subscription | null> {
   const { data, error } = await getAdminClient()
     .database.from(TABLE)
     .select('*')
-    .eq('stripe_customer_id', customerId)
+    .eq('porsa_customer_id', customerId)
     .limit(1);
 
   if (error) {
@@ -63,8 +63,8 @@ export async function countUserProjects(userId: string): Promise<number> {
 
 export interface SubscriptionUpsert {
   userId: string;
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
+  porsaCustomerId: string | null;
+  porsaPaymentId: string | null;
   plan: PlanId;
   billingInterval: BillingInterval | null;
   status: SubscriptionStatus;
@@ -75,8 +75,8 @@ export interface SubscriptionUpsert {
 
 /**
  * Insert or update the subscription row for a user (one row per user). Called
- * from the webhook after every relevant Stripe event so local state always
- * mirrors Stripe. Uses `user_id` as the natural key.
+ * from the Porsa webhook after every relevant payment event so local state
+ * always mirrors the provider. Uses `user_id` as the natural key.
  */
 export async function upsertSubscription(input: SubscriptionUpsert): Promise<void> {
   const db = getAdminClient().database;
@@ -84,8 +84,8 @@ export async function upsertSubscription(input: SubscriptionUpsert): Promise<voi
 
   const record = {
     user_id: input.userId,
-    stripe_customer_id: input.stripeCustomerId,
-    stripe_subscription_id: input.stripeSubscriptionId,
+    porsa_customer_id: input.porsaCustomerId,
+    porsa_payment_id: input.porsaPaymentId,
     plan: input.plan,
     billing_interval: input.billingInterval,
     status: input.status,
@@ -108,8 +108,8 @@ export async function upsertSubscription(input: SubscriptionUpsert): Promise<voi
 }
 
 /**
- * Persist just the Stripe customer id for a user (before a subscription exists),
- * so we can reuse the same customer across checkout sessions and the portal.
+ * Persist just the Porsa customer id for a user (before a payment exists), so
+ * their billing history stays on one customer record across payments.
  */
 export async function ensureCustomerId(
   userId: string,
@@ -120,10 +120,10 @@ export async function ensureCustomerId(
   const now = new Date().toISOString();
 
   if (existing) {
-    if (existing.stripe_customer_id === customerId) return;
+    if (existing.porsa_customer_id === customerId) return;
     const { error } = await db
       .from(TABLE)
-      .update({ stripe_customer_id: customerId, updated_at: now })
+      .update({ porsa_customer_id: customerId, updated_at: now })
       .eq('user_id', userId);
     if (error) throw new Error(error.message ?? 'Failed to save customer id.');
     return;
@@ -132,7 +132,7 @@ export async function ensureCustomerId(
   const { error } = await db.from(TABLE).insert([
     {
       user_id: userId,
-      stripe_customer_id: customerId,
+      porsa_customer_id: customerId,
       plan: 'free',
       billing_interval: null,
       status: 'free',
@@ -151,4 +151,59 @@ export async function getEntitlement(userId: string): Promise<Entitlement> {
     countUserProjects(userId),
   ]);
   return computeEntitlement(sub, projectCount);
+}
+
+/**
+ * Whether a user is on a paid plan right now.
+ *
+ * Deliberately narrower than `getEntitlement`: the AI model gate only needs
+ * "is this paid", and it runs on every generation — a single subscription read is
+ * enough and avoids counting the user's projects on each turn. Falls back to the
+ * user-scoped client (RLS) when the admin key isn't configured, exactly like the
+ * project-limit check.
+ */
+export async function isUserPaid(userId: string, accessToken: string | null): Promise<boolean> {
+  if (hasAdminKey()) {
+    return subscriptionIsActive(await getSubscription(userId));
+  }
+  if (!accessToken) return false;
+
+  const { data, error } = await getUserScopedClient(accessToken)
+    .database.from('subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .limit(1);
+  if (error) throw new Error(error.message ?? 'Failed to load subscription.');
+  return subscriptionIsActive(unwrap<Subscription>(data));
+}
+
+/**
+ * Entitlement without the admin key — reads via a user-scoped client so RLS
+ * applies. Used by `POST /api/projects` when INSFORGE_ADMIN_KEY is not set, so
+ * project creation still enforces the Free-plan limit (using the user's own
+ * readable rows) instead of hard-failing on a missing server credential.
+ * Reads only what the user can already read: their subscription row and their
+ * own project count.
+ */
+export async function getEntitlementUserScoped(
+  accessToken: string,
+  userId: string
+): Promise<Entitlement> {
+  const db = getUserScopedClient(accessToken).database;
+
+  const [subResult, countResult] = await Promise.all([
+    db.from('subscriptions').select('*').eq('user_id', userId).limit(1),
+    db.from('projects').select('id').eq('user_id', userId),
+  ]);
+
+  if (subResult.error) {
+    throw new Error(subResult.error.message ?? 'Failed to load subscription.');
+  }
+  if (countResult.error) {
+    throw new Error(countResult.error.message ?? 'Failed to count projects.');
+  }
+
+  const sub = unwrap<Subscription>(subResult.data);
+  const count = Array.isArray(countResult.data) ? countResult.data.length : 0;
+  return computeEntitlement(sub, count);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AtSign, ArrowUp, Check, Loader2, Paperclip, Plus, Sparkles, SquarePen } from 'lucide-react';
+import { ArrowUp, Check, Loader2, Plus, Sparkles } from 'lucide-react';
 import { useBuilder } from './BuilderContext';
 
 export default function EditorChatPanel() {
@@ -22,7 +22,7 @@ export default function EditorChatPanel() {
   }
 
   return (
-    <aside className="flex w-[360px] shrink-0 flex-col border-r border-[#ece6e2] bg-white">
+    <aside className="flex w-[300px] shrink-0 flex-col border-r border-[#ece6e2] bg-white lg:w-[360px] max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:z-30">
       <div className="flex items-center justify-between px-5 pb-4 pt-5">
         <button
           onClick={newChat}
@@ -30,12 +30,6 @@ export default function EditorChatPanel() {
         >
           <Plus size={18} strokeWidth={2.2} />
           New chat
-        </button>
-        <button
-          aria-label="Edit chat"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-[#e8e2de] bg-white text-[#4b5563] transition hover:bg-[#fff8f5]"
-        >
-          <SquarePen size={16} strokeWidth={1.9} />
         </button>
       </div>
 
@@ -129,27 +123,7 @@ export default function EditorChatPanel() {
             disabled={isStreaming}
             className="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm text-[#111827] outline-none placeholder:text-[#9aa2af] disabled:opacity-60"
           />
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex gap-1.5">
-              <button
-                aria-label="AI suggestions"
-                className="grid h-9 w-9 place-items-center rounded-lg text-[#6b7280] transition hover:bg-[#fff3ef]"
-              >
-                <Sparkles size={16} strokeWidth={1.9} />
-              </button>
-              <button
-                aria-label="Mention"
-                className="grid h-9 w-9 place-items-center rounded-lg text-[#6b7280] transition hover:bg-[#fff3ef]"
-              >
-                <AtSign size={16} strokeWidth={1.9} />
-              </button>
-              <button
-                aria-label="Attach file"
-                className="grid h-9 w-9 place-items-center rounded-lg text-[#6b7280] transition hover:bg-[#fff3ef]"
-              >
-                <Paperclip size={16} strokeWidth={1.9} />
-              </button>
-            </div>
+          <div className="flex items-center justify-end pt-1">
             <button
               aria-label="Send message"
               onClick={submit}

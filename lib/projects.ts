@@ -17,6 +17,8 @@ export interface Project {
   thumbnail_url: string | null;
   /** Storage object key for the thumbnail (kept alongside the URL per the InsForge pattern). */
   thumbnail_key: string | null;
+  /** Selected CometAPI model id for this project; null = app default. */
+  ai_model: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -141,4 +143,87 @@ export async function getProject(id: string): Promise<Project | null> {
 
   const project = Array.isArray(data) ? data[0] : data;
   return (project as Project) ?? null;
+}
+
+/**
+ * Rename a project. RLS scopes the update to the owner, so passing another
+ * user's id silently affects zero rows (which we surface as an error).
+ */
+export async function renameProject(id: string, name: string): Promise<void> {
+  const trimmed = name.trim().slice(0, 120);
+  if (!trimmed) {
+    throw new Error('A project name is required.');
+  }
+
+  const { data, error } = await insforge.database
+    .from('projects')
+    .update({ name: trimmed, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select();
+
+  if (error) {
+    throw new Error(error.message ?? 'Failed to rename project.');
+  }
+  if (Array.isArray(data) && data.length === 0) {
+    throw new Error('Project not found.');
+  }
+}
+
+/**
+ * Persist the AI model this project generates with. RLS scopes the update to the
+ * owner, so another user's project id affects zero rows (surfaced as an error).
+ */
+export async function saveProjectAIModel(projectId: string, model: string): Promise<void> {
+  const { data, error } = await insforge.database
+    .from('projects')
+    .update({ ai_model: model, updated_at: new Date().toISOString() })
+    .eq('id', projectId)
+    .select();
+
+  if (error) {
+    throw new Error(error.message ?? 'Failed to save the model choice.');
+  }
+  if (Array.isArray(data) && data.length === 0) {
+    throw new Error('Project not found.');
+  }
+}
+
+/**
+ * Permanently delete a project and every row scoped to it. RLS scopes each
+ * delete to the owner. Storage objects (thumbnails, exported ZIPs) linger in
+ * the buckets — acceptable for now; a cleanup job can reap orphaned objects.
+ */
+export async function deleteProject(id: string): Promise<void> {
+  // Children first (no ON DELETE CASCADE guaranteed across environments).
+  const children = [
+    'project_pages',
+    'project_messages',
+    'project_themes',
+    'project_revisions',
+    'theme_exports',
+  ] as const;
+
+  for (const table of children) {
+    const { error } = await insforge.database
+      .from(table)
+      .delete()
+      .eq('project_id', id);
+    // A missing table (feature not provisioned) shouldn't block the delete.
+    if (error && !/relation|does not exist|schema/i.test(error.message ?? '')) {
+      throw new Error(error.message ?? `Failed to delete project ${table}.`);
+    }
+  }
+
+  const { data, error } = await insforge.database
+    .from('projects')
+    .delete()
+    .eq('id', id)
+    .select();
+
+  if (error) {
+    throw new Error(error.message ?? 'Failed to delete project.');
+  }
+  if (Array.isArray(data) && data.length === 0) {
+    throw new Error('Project not found.');
+  }
 }

@@ -68,10 +68,10 @@ export default function EditorPage() {
             This project doesn&apos;t exist or you don&apos;t have access to it.
           </p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/projects')}
             className="mt-5 inline-flex h-10 items-center rounded-xl bg-[#ff6747] px-5 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
           >
-            Back to home
+            Back to projects
           </button>
         </div>
       </div>
@@ -79,7 +79,11 @@ export default function EditorPage() {
   }
 
   return (
-    <BuilderProvider projectId={projectId} initialPrompt={project?.prompt ?? ''}>
+    <BuilderProvider
+      projectId={projectId}
+      initialPrompt={project?.prompt ?? ''}
+      initialAiModel={project?.ai_model ?? null}
+    >
       <div className="flex h-screen flex-col overflow-hidden bg-[#fafafa]">
         <EditorTopBar
           collapsed={collapsed}
@@ -88,10 +92,10 @@ export default function EditorPage() {
           projectName={project?.name ?? 'Storefront'}
         />
 
-        <div className="flex min-h-0 flex-1">
+        <div className="relative flex min-h-0 flex-1">
           {!collapsed && <EditorChatPanel />}
 
-          <EditorPreview />
+          <EditorPreview projectName={project?.name} />
         </div>
       </div>
     </BuilderProvider>

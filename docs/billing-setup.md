@@ -1,79 +1,61 @@
-# Billing & subscriptions setup (Stripe + InsForge)
+# Billing & subscriptions setup (Porsa + InsForge)
 
 This wires up the subscription system: Free / Monthly ($9.99) / Yearly ($99.99)
-plans, Stripe Checkout, the Customer Portal, webhooks, and server-enforced
-project limits. Complete these one-time steps before the feature works.
+plans, Porsa hosted checkout, webhooks, and server-enforced project limits.
+Complete these one-time steps before the feature works.
+
+Porsa (https://porsa.io) is a Merchant-of-Record payment platform for African
+markets: mobile money (M-Pesa, MTN, Orange, Airtel), cards, bank transfer, and
+USSD. Porsa handles tax, compliance, and invoicing — you never touch card data.
+
+> **How billing works with Porsa.** Automatic recurring billing is "Coming Soon"
+> on Porsa's plans, so a subscription here is one payment per period: paying for
+> Monthly buys 30 days, Yearly buys 365. The webhook extends
+> `current_period_end` on every successful payment; when a period lapses, the
+> entitlement drops to Free and the billing page offers "pay for the next
+> period". This is enforced from Porsa's own event data — no local grants.
 
 ## 1. Create the `subscriptions` table (InsForge)
 
-Run this SQL in the InsForge dashboard (SQL editor) or via `insforge` CLI. One
-row per user; only the user can read their own row, and only the service key
-(webhook / server routes) can write it.
+Run the SQL migrations in `migrations/` (the CLI applies them all):
 
-```sql
-create table if not exists public.subscriptions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null unique references auth.users(id) on delete cascade,
-  stripe_customer_id text,
-  stripe_subscription_id text,
-  plan text not null default 'free',
-  billing_interval text,
-  status text not null default 'free',
-  current_period_start timestamptz,
-  current_period_end timestamptz,
-  cancel_at_period_end boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists subscriptions_customer_idx
-  on public.subscriptions (stripe_customer_id);
-
-alter table public.subscriptions enable row level security;
-
--- Users may read ONLY their own subscription. No client insert/update/delete:
--- all writes go through the server (admin key) in the Stripe webhook.
-create policy "read own subscription"
-  on public.subscriptions for select
-  using (auth.uid() = user_id);
+```bash
+npx -y @insforge/cli db migrations up --all
 ```
 
-> The webhook and server routes use the InsForge **admin** key, which bypasses
-> RLS, so no write policies are needed for anon/authenticated roles.
+One row per user; only the user can read their own row, and only the service
+key (webhook / server routes) can write it. The payment-provider columns are
+`porsa_customer_id` and `porsa_payment_id`.
 
-The existing `projects` table is unchanged — the project-limit check counts rows
-there server-side.
+## 2. Porsa dashboard
 
-## 2. Stripe dashboard
-
-1. Grab your **Secret key** (`sk_test_…`) from Developers → API keys.
-2. Create a **webhook endpoint** pointing at `https://<your-domain>/api/billing/webhook`
-   and subscribe to these events:
-   - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.paid`
-   - `invoice.payment_failed`
-   Copy the endpoint's **Signing secret** (`whsec_…`).
-3. Enable the **Customer Portal** (Settings → Billing → Customer portal) so
-   "Manage Billing" works.
-
-We do **not** create Products or Prices in Stripe — plan name, interval, and
-amount are sent inline as `price_data` from `lib/billing/plans.ts`.
+1. Create a Porsa account and a business (https://porsa.io).
+2. **API access requires the Expansion plan** (per Porsa's pricing page) — API
+   access + advanced webhooks are gated on it. Contact Porsa sales if the API
+   section is not visible in your dashboard.
+3. Copy the **secret API key** (server-only) from the dashboard's API section.
+4. Register a **webhook endpoint** pointing at
+   `https://<your-domain>/api/billing/webhook` and subscribe to the payment
+   lifecycle events (`payment.succeeded`, `payment.failed`, and their
+   `checkout.*` aliases — all are handled). Copy the endpoint's **signing
+   secret**.
 
 ## 3. Environment variables (`.env.local`, server-only)
 
 ```bash
-# Stripe — never expose these to the browser (no NEXT_PUBLIC_ prefix).
-STRIPE_SECRET_KEY=sk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
+# Porsa — never expose these to the browser (no NEXT_PUBLIC_ prefix).
+PORSA_SECRET_KEY=<secret API key from the dashboard>
+PORSA_WEBHOOK_SECRET=<webhook signing secret>
+
+# Optional overrides
+# PORSA_API_BASE_URL=https://api.porsa.io     # sandbox/proxy override
+# PORSA_DASHBOARD_URL=https://dashboard.porsa.io  # "Manage billing" link target
 
 # InsForge admin (service) key — the `api_key` from .insforge/project.json.
 # Server-only: bypasses RLS, used by the webhook and project-limit routes.
 INSFORGE_ADMIN_KEY=ik_xxx
 
-# Public base URL used for Stripe success/cancel/return URLs.
+# Public base URL used for checkout success/cancel redirects.
 # Optional in dev (falls back to the request origin / http://localhost:3000).
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -81,10 +63,25 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## 4. Local webhook testing
 
 ```bash
-stripe listen --forward-to localhost:3000/api/billing/webhook
-# copy the printed whsec_… into STRIPE_WEBHOOK_SECRET, then:
-stripe trigger checkout.session.completed
+# Sign a payload the way Porsa does (HMAC-SHA256 over the raw body) and deliver it:
+node -e '
+const { createHmac } = require("crypto");
+const body = JSON.stringify({
+  type: "payment.succeeded",
+  data: { id: "pay_test", status: "succeeded",
+    metadata: { insforge_user_id: "<USER_ID>", plan: "monthly" },
+    current_period: { start: new Date().toISOString(),
+      end: new Date(Date.now() + 30*864e5).toISOString() } }
+});
+const sig = createHmac("sha256", process.env.PORSA_WEBHOOK_SECRET).update(body).digest("hex");
+fetch("http://localhost:3000/api/billing/webhook", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "x-porsa-signature": `t=0,v1=${sig}` },
+  body }).then(r => r.text()).then(console.log);
+'
 ```
+
+The user's subscription row flips to `active` and their entitlement unlocks.
 
 ## 5. How enforcement works
 
@@ -94,6 +91,19 @@ stripe trigger checkout.session.completed
   402 to an upgrade dialog. The browser cannot bypass this.
 - **Shopify export** — gated in the editor by the server-provided entitlement
   (`canExport`); Free users see the upgrade dialog instead of the export flow.
-- **Sync** — the webhook mirrors every Stripe subscription change into the
-  `subscriptions` table, so permissions update automatically after checkout,
-  renewal, cancellation, or a failed payment.
+- **Premium AI models** — gated server-side per request (`lib/ai/model-access.ts`)
+  from the same entitlement.
+- **Sync** — the webhook mirrors every Porsa payment event into the
+  `subscriptions` table, so permissions update automatically after checkout or
+  a failure. A lapsed period is dropped by the entitlement check itself.
+- **Cancel** — with Porsa there is no provider-side cancel call; cancelling
+  marks the period as not-to-be-renewed, and access runs until
+  `current_period_end`. Paying again at any time continues the subscription.
+
+## 6. Aligning the API contract
+
+Porsa's REST paths/field names are pinned in ONE file, `lib/billing/porsa.ts`
+(`paymentEndpoint`, `mapPaymentResponse`, `parsePaymentEvent`). If your
+dashboard's API reference shows different paths or field names, adjust there —
+no other file needs to change. The checkout route sends an idempotency key so
+network retries can never double-charge.

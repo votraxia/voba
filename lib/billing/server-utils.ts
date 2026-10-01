@@ -1,7 +1,7 @@
 import 'server-only';
 
 /**
- * Resolve the public origin to build Stripe success/cancel/return URLs. Prefers
+ * Resolve the public origin to build Porsa success/cancel redirect URLs. Prefers
  * an explicit `NEXT_PUBLIC_APP_URL`, then the request's `origin` header, then a
  * localhost fallback for development.
  */

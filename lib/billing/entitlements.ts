@@ -8,6 +8,18 @@ import type { Entitlement, Subscription, SubscriptionStatus } from './types';
  * so the server routes and the UI can never disagree.
  */
 
+/**
+ * A paid period that has lapsed no longer grants access. With Porsa each
+ * payment buys one period and there is no auto-renewal yet, so this is what
+ * ends an unpaid subscription: once `current_period_end` is in the past the
+ * row keeps its history but reads as canceled.
+ */
+function periodHasLapsed(sub: Subscription): boolean {
+  if (!sub.current_period_end) return false;
+  const end = new Date(sub.current_period_end).getTime();
+  return !Number.isNaN(end) && end <= Date.now();
+}
+
 /** Statuses that grant paid access. `past_due` keeps access during the grace period. */
 const ACTIVE_STATUSES: SubscriptionStatus[] = ['active', 'trialing', 'past_due'];
 
@@ -25,7 +37,7 @@ export function computeEntitlement(
   sub: Subscription | null,
   projectCount: number
 ): Entitlement {
-  const active = subscriptionIsActive(sub);
+  const active = sub !== null && subscriptionIsActive(sub) && !periodHasLapsed(sub);
   const planId = active && sub ? sub.plan : 'free';
   const plan = getPlan(planId);
 

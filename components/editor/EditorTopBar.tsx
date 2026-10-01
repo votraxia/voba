@@ -3,18 +3,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
+  Check,
   ChevronDown,
   ChevronLeft,
   Code2,
   Download,
-  Eye,
   FileImage,
+  History,
   Loader2,
+  RotateCcw,
   Save,
   Store,
 } from 'lucide-react';
 import { useBuilder } from './BuilderContext';
 import ExportDialog from './ExportDialog';
+import ModelPicker from './ModelPicker';
+import ShopifyPushDialog from './ShopifyPushDialog';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useSubscription } from '@/components/billing/SubscriptionProvider';
 import UpgradeDialog from '@/components/billing/UpgradeDialog';
 import { exportPagesAsCodeZip } from '@/lib/export/code';
@@ -28,13 +33,37 @@ interface EditorTopBarProps {
   projectName: string;
 }
 
+/** Format a revision timestamp as a short relative label. */
+function formatRevisionTime(iso: string): string {
+  const time = new Date(iso).getTime();
+  if (Number.isNaN(time)) return '';
+  const diffMs = Date.now() - time;
+  const minutes = Math.round(diffMs / 60_000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export default function EditorTopBar({
   collapsed,
   onToggleSidebar,
   projectId,
   projectName,
 }: EditorTopBarProps) {
-  const { pages, themeCss, styleGuide } = useBuilder();
+  const {
+    pages,
+    themeCss,
+    styleGuide,
+    aiModel,
+    saveNow,
+    saving,
+    saveError,
+    revisions,
+    restoreRevision,
+    undo,
+  } = useBuilder();
   const { entitlement } = useSubscription();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,6 +73,17 @@ export default function EditorTopBar({
   const [pngStatus, setPngStatus] = useState('');
   const [exportError, setExportError] = useState('');
   const exportRef = useRef<HTMLDivElement>(null);
+  // Save feedback + history popover state.
+  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
+
+  // "Send to Shopify" push flow (OAuth + server-side theme install).
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [pushOpen, setPushOpen] = useState(false);
+  const [pushZip, setPushZip] = useState<{ url: string; fileName: string } | null>(null);
 
   // Only fully generated pages (with HTML) are exportable.
   const exportPages = useMemo<ExportPage[]>(
@@ -60,7 +100,6 @@ export default function EditorTopBar({
     { id: 'zip', label: 'Download ZIP', icon: Download, action: () => openExport() },
     { id: 'code', label: 'Export Code', icon: Code2, action: () => void runCodeExport() },
     { id: 'png', label: 'Export to PNG image', icon: FileImage, action: () => void runPngExport() },
-    { id: 'preview', label: 'Preview Theme', icon: Eye, action: () => {} },
   ];
 
   // Shopify theme export is a paid feature. Free users get the upgrade dialog
@@ -121,8 +160,34 @@ export default function EditorTopBar({
     return () => document.removeEventListener('mousedown', onClick);
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!historyOpen) return;
+    function onClick(event: MouseEvent) {
+      if (historyRef.current && !historyRef.current.contains(event.target as Node)) {
+        setHistoryOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [historyOpen]);
+
+  async function handleSave() {
+    const ok = await saveNow();
+    setSaveState(ok ? 'saved' : 'failed');
+    if (ok) {
+      setTimeout(() => setSaveState('idle'), 2500);
+    }
+  }
+
+  async function handleRestore(id: string) {
+    setRestoringId(id);
+    const ok = await restoreRevision(id);
+    setRestoringId(null);
+    if (ok) setHistoryOpen(false);
+  }
+
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#ece6e2] bg-white px-4">
+    <header className="relative flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#ece6e2] bg-white px-4">
       <div className="flex items-center gap-3">
         <Image
           src="/logo.png"
@@ -149,6 +214,8 @@ export default function EditorTopBar({
       </div>
 
       <div className="flex shrink-0 items-center gap-3">
+        <ModelPicker />
+
         <div className="relative" ref={exportRef}>
           <button
             onClick={() => setMenuOpen((open) => !open)}
@@ -209,11 +276,107 @@ export default function EditorTopBar({
           )}
         </div>
 
-        <button className="flex h-11 items-center gap-2 rounded-xl bg-[#ff6747] px-5 text-sm font-semibold text-white shadow-[0_12px_22px_rgba(255,103,71,0.2)] transition hover:bg-[#f85b3a]">
-          <Save size={17} strokeWidth={1.9} />
-          Save
+        {/* Revision history (undo/restore) popover. */}
+        <div className="relative" ref={historyRef}>
+          <button
+            onClick={() => setHistoryOpen((v) => !v)}
+            disabled={saving || busy !== null}
+            aria-label="Version history"
+            title={revisions.length > 0 ? 'Version history' : 'No saved versions yet'}
+            className="relative grid h-11 w-11 place-items-center rounded-xl border border-[#e8e2de] bg-white text-[#4b5563] shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-[#fff8f5] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <History size={17} strokeWidth={1.9} />
+            {revisions.length > 0 && (
+              <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#ff6747] px-1 text-[10px] font-bold text-white">
+                {Math.min(revisions.length, 30)}
+              </span>
+            )}
+          </button>
+
+          {historyOpen && (
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[420px] w-80 overflow-y-auto rounded-2xl border border-[#eee7e3] bg-white p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+              <div className="flex items-center justify-between px-3 py-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa2af]">
+                  Version history
+                </p>
+                <button
+                  onClick={() => void undo()}
+                  disabled={revisions.length === 0 || saving}
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-[#ff6747] transition hover:bg-[#fff3ef] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <RotateCcw size={12} strokeWidth={2.2} /> Undo last
+                </button>
+              </div>
+              {revisions.length === 0 ? (
+                <p className="px-3 pb-3 pt-1 text-xs text-[#9aa2af]">
+                  Versions are saved automatically each time the AI changes your build, so you can
+                  always go back.
+                </p>
+              ) : (
+                <ul className="space-y-0.5">
+                  {revisions.map((revision) => (
+                    <li key={revision.id}>
+                      <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 transition hover:bg-[#fff8f5]">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-medium text-[#111827]">
+                            {revision.label || 'Update'}
+                          </p>
+                          <p className="text-[11px] text-[#9aa2af]">
+                            {formatRevisionTime(revision.createdAt)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => void handleRestore(revision.id)}
+                          disabled={saving || restoringId !== null}
+                          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-[#ff6747] transition hover:bg-[#fff3ef] disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {restoringId === revision.id ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            'Restore'
+                          )}
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Save button with live state. */}
+        <button
+          onClick={() => void handleSave()}
+          disabled={saving || busy !== null}
+          className="flex h-11 items-center gap-2 rounded-xl bg-[#ff6747] px-5 text-sm font-semibold text-white shadow-[0_12px_22px_rgba(255,103,71,0.2)] transition hover:bg-[#f85b3a] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {saving ? (
+            <Loader2 size={17} strokeWidth={2} className="animate-spin" />
+          ) : saveState === 'saved' ? (
+            <Check size={17} strokeWidth={2.4} />
+          ) : (
+            <Save size={17} strokeWidth={1.9} />
+          )}
+          {saving ? 'Saving…' : saveState === 'saved' ? 'Saved' : 'Save'}
         </button>
       </div>
+
+      {saveError && (
+        <div className="pointer-events-none absolute inset-x-0 top-16 z-40 flex justify-center">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-[#f6d5cf] bg-[#fdeceb] px-4 py-2.5 text-[13px] font-medium text-[#c0432f] shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
+            <span>
+              Your last change couldn&apos;t be saved. It&apos;s still in the preview — try Save again.
+            </span>
+            <button
+              onClick={() => void handleSave()}
+              className="rounded-lg bg-[#c0432f] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#a83a28]"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
       <ExportDialog
         open={dialogOpen}
@@ -223,7 +386,28 @@ export default function EditorTopBar({
         pages={exportPages}
         themeCss={themeCss}
         styleGuide={styleGuide}
+        model={aiModel}
+        onSendToShopify={(zipUrl, fileName) => {
+          setPushZip({ url: zipUrl, fileName });
+          setPushOpen(true);
+        }}
       />
+
+      {pushZip && (
+        <ShopifyPushDialog
+          open={pushOpen}
+          onClose={() => {
+            setPushOpen(false);
+            setPushZip(null);
+          }}
+          projectId={projectId}
+          projectName={projectName}
+          zipUrl={pushZip.url}
+          fileName={pushZip.fileName}
+          returnTo={pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')}
+          justConnected={searchParams.get('shopify') === 'connected'}
+        />
+      )}
 
       <UpgradeDialog
         open={upgradeOpen}

@@ -1,11 +1,19 @@
 import { z } from 'zod';
 import type { BuilderPage, PageType, PatchOperation } from './events';
+import { AI_MODEL_IDS } from './models';
 
 /**
  * Zod schemas for every AI input/output boundary (AGENTS.md §6: validate all AI
  * output before acting on it). Nothing the model returns is trusted until it
  * passes through here.
  */
+
+/**
+ * The AI model a request wants to use. Restricted to the curated catalog so a
+ * client can never make the server call an arbitrary (or expensive) model id —
+ * the picker's options and what the API accepts are the same list.
+ */
+export const aiModelSchema = z.enum(AI_MODEL_IDS);
 
 export const pageTypeSchema = z.enum([
   'home',
@@ -47,6 +55,8 @@ export type ThemeSpec = z.infer<typeof themeSpecSchema>;
 
 /** Body of a POST to `/api/ai`. */
 export const aiRequestSchema = z.object({
+  /** Per-project model selection. Omitted → the deployment default (AI_MODEL). */
+  model: aiModelSchema.optional(),
   messages: z.array(chatMessageSchema).min(1).max(50),
   /** Page tabs that already exist in the editor. */
   pages: z.array(builderPageSchema).max(12).default([]),
@@ -214,6 +224,8 @@ export type ShopifySectionRequestItem = z.infer<typeof shopifySectionInputSchema
 
 /** Body of a POST to `/api/shopify/sections`. */
 export const shopifySectionsRequestSchema = z.object({
+  /** The project's selected model, so sections match how the pages were built. */
+  model: aiModelSchema.optional(),
   brandName: z.string().min(1).max(80),
   styleGuide: z.string().max(6000).nullish(),
   sections: z.array(shopifySectionInputSchema).min(1).max(40),

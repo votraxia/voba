@@ -7,7 +7,7 @@ import { startCheckout } from '@/lib/billing/client';
 
 /**
  * Reusable upgrade modal shown when a Free user hits the project limit or tries
- * to export. Presents the Monthly and Yearly plans and starts Stripe Checkout
+ * to export. Presents the Monthly and Yearly plans and starts Porsa checkout
  * for the chosen one. Purely presentational beyond the checkout call.
  */
 interface UpgradeDialogProps {
@@ -34,7 +34,7 @@ export default function UpgradeDialog({
     setBusy(plan);
     try {
       await startCheckout(plan);
-      // On success the browser navigates to Stripe; nothing else to do.
+      // On success the browser navigates to Porsa's hosted checkout; nothing else to do.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start checkout.');
       setBusy(null);

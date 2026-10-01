@@ -6,8 +6,10 @@ import type { BillingInterval, PlanId } from './plans';
  */
 
 /**
- * Subscription lifecycle status. Mirrors Stripe's subscription statuses plus a
- * local `free` value for users who have never paid (no Stripe subscription).
+ * Subscription lifecycle status. Values carried over from the Stripe era for
+ * compatibility with existing rows, plus a local `free` value for users who
+ * have never paid. With Porsa, a payment is one billing period: `active` while
+ * `current_period_end` is in the future, `canceled`/`free` once it lapses.
  */
 export type SubscriptionStatus =
   | 'free'
@@ -20,12 +22,12 @@ export type SubscriptionStatus =
   | 'incomplete_expired'
   | 'paused';
 
-/** A row of the `subscriptions` table. */
+/** A row of the `subscriptions` table (`porsa_*` = payment-provider ids). */
 export interface Subscription {
   id: string;
   user_id: string;
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
+  porsa_customer_id: string | null;
+  porsa_payment_id: string | null;
   plan: PlanId;
   billing_interval: BillingInterval | null;
   status: SubscriptionStatus;

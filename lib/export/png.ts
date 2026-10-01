@@ -7,7 +7,7 @@ import { downloadBlob, loadTailwindCss, slugify, uniqueFileBases, waitForImages 
 /**
  * "Export to PNG" — rasterize every generated page to a full-page PNG. Each page
  * is rendered in an offscreen, same-origin iframe (Tailwind inlined so classes
- * resolve) and captured with html-to-image, which inlines the ImageKit images so
+ * resolve) and captured with html-to-image, which inlines the Unsplash images so
  * they appear in the output instead of blank spots. One page downloads directly;
  * multiple pages are bundled into a ZIP so the browser doesn't block a burst of
  * separate downloads.

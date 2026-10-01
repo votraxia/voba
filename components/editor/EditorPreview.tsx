@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { buildPreviewShell } from '@/lib/ai/sanitize';
 import { useBuilder, type PageState } from './BuilderContext';
+import { authHeaders } from '@/lib/auth-headers';
 import type { PageType } from '@/lib/ai/events';
 
 const PAGE_ICONS: Record<PageType, typeof Home> = {
@@ -37,9 +38,17 @@ const VIEWPORTS: { id: Viewport; label: string; icon: typeof Monitor; width: str
   { id: 'mobile', label: 'Mobile', icon: Smartphone, width: '390px' },
 ];
 
-const STORE_DOMAIN = 'your-store.myshopify.com';
+/** Derive a plausible myshopify subdomain from the project name for the address bar. */
+function storeDomainFromName(name: string | undefined): string {
+  const slug = (name || 'your-store')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  return `${slug || 'your-store'}.myshopify.com`;
+}
 
-export default function EditorPreview() {
+export default function EditorPreview({ projectName }: { projectName?: string }) {
   const {
     pages,
     activePage,
@@ -52,6 +61,7 @@ export default function EditorPreview() {
     sendMessage,
     updatePageHtml,
   } = useBuilder();
+  const storeDomain = useMemo(() => storeDomainFromName(projectName), [projectName]);
   const [viewport, setViewport] = useState<Viewport>('desktop');
   const [reloadKey, setReloadKey] = useState(0);
   const [editMode, setEditMode] = useState(false);
@@ -105,6 +115,29 @@ export default function EditorPreview() {
         // An inline edit was applied inside the preview; persist just this page.
         if (!ctx.activePageId || typeof data.html !== 'string') return;
         lastSyncedHtmlRef.current = ctx.updatePageHtml(ctx.activePageId, data.html);
+      } else if (data.type === 'builder:findImage') {
+        // The sandboxed iframe cannot fetch same-origin APIs (no allow-same-origin),
+        // so the parent performs the Unsplash resolve and posts the result back.
+        const targetId = typeof data.targetId === 'string' ? data.targetId : '';
+        const prompt = typeof data.prompt === 'string' ? data.prompt : '';
+        if (!prompt || !iframeRef.current?.contentWindow) return;
+        void (async () => {
+          let result: Record<string, unknown>;
+          try {
+            const res = await fetch('/api/images/resolve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+              body: JSON.stringify({ prompt: prompt.slice(0, 400) }),
+            });
+            result = (await res.json().catch(() => null)) ?? { error: 'Image search failed.' };
+          } catch {
+            result = { error: 'Image search failed. Check your connection and try again.' };
+          }
+          iframeRef.current?.contentWindow?.postMessage(
+            { type: 'builder:imageResult', targetId, ...result },
+            '*'
+          );
+        })();
       } else if (data.type === 'builder:requestAIEdit' || data.type === 'builder:requestAIImage') {
         const isImage = data.type === 'builder:requestAIImage';
         const targetId = typeof data.targetId === 'string' ? data.targetId : '';
@@ -183,7 +216,7 @@ export default function EditorPreview() {
               ✓
             </span>
             <span className="truncate text-[13px] text-[#6b7280]">
-              {STORE_DOMAIN}
+              {storeDomain}
               <span className="text-[#9aa2af]">{activePage?.path ?? '/'}</span>
             </span>
             <button

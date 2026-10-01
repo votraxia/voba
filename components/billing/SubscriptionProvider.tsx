@@ -14,7 +14,7 @@ import { fetchEntitlement, type EntitlementDTO } from '@/lib/billing/client';
  * Client-side subscription context. Loads the authoritative entitlement from the
  * server whenever a user is signed in and exposes it to the sidebar usage UI,
  * upgrade dialogs, billing page, and export gating. `refresh()` is called after
- * returning from Stripe so permissions update as soon as the webhook has run.
+ * returning from checkout so permissions update as soon as the webhook has run.
  */
 interface SubscriptionContextValue {
   entitlement: EntitlementDTO | null;
@@ -29,7 +29,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [entitlement, setEntitlement] = useState<EntitlementDTO | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Manual refresh (called from event handlers / after returning from Stripe).
+  // Manual refresh (called from event handlers / after returning from checkout).
   const refresh = useCallback(async () => {
     if (!user) {
       setEntitlement(null);

@@ -116,6 +116,13 @@ export default function BillingPage() {
   const usagePct =
     isPaid || !maxProjects ? 100 : Math.min(100, Math.round((projectCount / maxProjects) * 100));
 
+  // With Porsa there is no auto-renewal: a lapsed or cancel-flagged period is
+  // continued by paying for the next one. Point that action at the current plan.
+  const renewalPlan: 'monthly' | 'yearly' | null =
+    entitlement && (entitlement.plan === 'monthly' || entitlement.plan === 'yearly')
+      ? entitlement.plan
+      : 'monthly';
+
   return (
     <div className="min-h-screen bg-[#fffdfc] px-8 py-10">
       <div className="mx-auto max-w-[960px]">
@@ -169,7 +176,7 @@ export default function BillingPage() {
                   </span>
                   {isPaid && (
                     <span className="text-xs text-[#6b7280]">
-                      {cancelAtPeriodEnd ? 'Cancels on ' : 'Renews on '}
+                      {cancelAtPeriodEnd ? 'Ends on ' : 'Paid until '}
                       {formatDate(periodEnd)}
                     </span>
                   )}
@@ -213,10 +220,26 @@ export default function BillingPage() {
 
           {cancelAtPeriodEnd && (
             <p className="mt-4 rounded-xl border border-[#f6e4c8] bg-[#fdf7ec] px-4 py-3 text-sm text-[#9a6a1a]">
-              Your subscription is set to cancel on {formatDate(periodEnd)}. You’ll keep Pro access until then.
+              Your subscription ends on {formatDate(periodEnd)} and won’t be renewed. You’ll keep Pro access until then.
             </p>
           )}
         </section>
+
+        {isPaid && cancelAtPeriodEnd && (
+          <section className="mb-6 rounded-2xl border border-[#f6e4c8] bg-[#fdf7ec] p-5">
+            <p className="text-sm font-medium text-[#9a6a1a]">
+              Your plan won’t renew. Pay again anytime to continue Pro after {formatDate(periodEnd)}.
+            </p>
+            <button
+              onClick={() => void run('renew', () => startCheckout(renewalPlan))}
+              disabled={busy !== null}
+              className="mt-3 flex h-10 items-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a] disabled:opacity-60"
+            >
+              {busy === 'renew' ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
+              Pay for the next period now
+            </button>
+          </section>
+        )}
 
         {/* Usage */}
         <section id="usage" className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2">

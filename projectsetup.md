@@ -7,9 +7,9 @@ This guide walks through the full local setup for the AI Shopify Theme Builder, 
 - Node.js 20 or newer
 - npm
 - An InsForge project
-- A Gemini API key
-- Optional: ImageKit account
-- Optional: Stripe account
+- A CometAPI key (https://www.cometapi.com)
+- An Unsplash API access key
+- Optional: Porsa account (https://porsa.io) for billing
 
 ## 2. Install dependencies
 
@@ -32,15 +32,15 @@ Then update `.env.local`.
 ```bash
 NEXT_PUBLIC_INSFORGE_URL=
 NEXT_PUBLIC_INSFORGE_ANON_KEY=
-AI_PROVIDER=gemini
+AI_PROVIDER=cometapi
 AI_MODEL=gemini-2.5-flash
-GEMINI_API_KEY=
+COMETAPI_KEY=
 ```
 
 ### Optional but recommended
 
 ```bash
-NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
+UNSPLASH_ACCESS_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_INSFORGE_EXPORTS_BUCKET=theme-exports
 NEXT_PUBLIC_INSFORGE_THUMBNAILS_BUCKET=project-thumbnails
@@ -49,8 +49,8 @@ NEXT_PUBLIC_INSFORGE_THUMBNAILS_BUCKET=project-thumbnails
 ### Required for billing flows
 
 ```bash
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
+PORSA_SECRET_KEY=
+PORSA_WEBHOOK_SECRET=
 INSFORGE_ADMIN_KEY=
 ```
 
@@ -75,35 +75,86 @@ Keep this server-only. Never expose it to browser code.
 
 ## 5. AI provider setup
 
-The app reads the active provider and model from environment variables.
+All AI calls go through [CometAPI](https://www.cometapi.com), which exposes 500+
+models from every major lab through one OpenAI-compatible endpoint and one key.
+The adapter lives in `lib/ai/providers/cometapi.ts`; the active provider and
+model are read from environment variables so no model name is hardcoded.
 
-Current supported provider in code:
-
-- `AI_PROVIDER=gemini`
-
-Recommended default:
+1. Create an account at https://www.cometapi.com
+2. Copy an API key from the dashboard (API reference: https://apidoc.cometapi.com)
+3. Set it in `.env.local`:
 
 ```bash
-AI_PROVIDER=gemini
+AI_PROVIDER=cometapi
 AI_MODEL=gemini-2.5-flash
-GEMINI_API_KEY=your_key_here
+COMETAPI_KEY=your_key_here
 ```
 
-## 6. ImageKit setup
+Supported provider in code:
 
-ImageKit is optional. If it is not configured, the app falls back gracefully for image placeholders.
+- `AI_PROVIDER=cometapi`
 
-Set:
+`AI_MODEL` accepts any id from CometAPI's catalog. List them with:
 
 ```bash
-NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
+curl https://api.cometapi.com/v1/models -H "Authorization: Bearer $COMETAPI_KEY"
 ```
 
-This project only needs the public delivery endpoint for current frontend image generation and transformation URL building. Do not expose private ImageKit credentials in the browser.
+Switching to a different model (for example a Claude or GPT model) only requires
+changing `AI_MODEL` — no code changes. `COMETAPI_KEY` is server-only: it is read
+by the server modules that call the provider and must never be exposed to the
+browser (never prefix it `NEXT_PUBLIC_`).
+
+Optional override for a proxy or self-hosted gateway:
+
+```bash
+COMETAPI_BASE_URL=https://api.cometapi.com/v1
+```
+
+### Per-project model selection
+
+Users pick a model per project from the picker in the editor top bar. The catalog
+lives in `lib/ai/models.ts` and is the allowlist for the API, so the picker and
+the accepted model ids always match. The selection is stored in
+`projects.ai_model` (added by
+`migrations/20260929060000_add-project-ai-model.sql`) and applies to the
+project's next generation, inline edit, and Shopify section conversion.
+
+Notes:
+
+- `AI_MODEL` remains the default for requests that don't name a model.
+- A null `ai_model` (every existing project) means "use the default" — no
+  backfill is needed.
+- Output token ceilings differ per model. The adapter asks for a generous budget
+  and, if a model rejects it, retries once with the ceiling the provider reports,
+  remembering it for that model (`lib/ai/providers/cometapi.ts`). This is why
+  models like `gpt-4o` (16k) work alongside Gemini (32k).
+
+## 6. Unsplash image setup
+
+Storefront photography is resolved from the Unsplash API. Create a free
+application at https://unsplash.com/developers and set its Access Key:
+
+```bash
+UNSPLASH_ACCESS_KEY=your_access_key
+```
+
+This key is **server-only** (used by `/api/images/resolve` and the AI route's
+image resolution); it must never be prefixed `NEXT_PUBLIC_`.
+
+How it works:
+- The AI marks every image it wants with a `data-image-prompt` description.
+- The server matches each prompt to a real Unsplash photo (search API, cached)
+  and rewrites the `<img src>` to a hotlink-safe `images.unsplash.com` URL.
+- Image delivery from `images.unsplash.com` does NOT count against the API
+  rate limit (50 req/hour on demo keys — only `api.unsplash.com` calls do).
+- Photographer attribution is carried on every resolved photo per the Unsplash
+  API guidelines.
 
 ## 7. Billing setup
 
-Billing requires Stripe and InsForge admin access.
+Billing requires a Porsa account (Expansion plan for API access) and InsForge
+admin access.
 
 Read and complete:
 
@@ -112,10 +163,9 @@ Read and complete:
 That includes:
 
 - creating the `subscriptions` table
-- configuring Stripe webhook events
-- enabling the Stripe customer portal
-- setting `STRIPE_SECRET_KEY`
-- setting `STRIPE_WEBHOOK_SECRET`
+- configuring Porsa webhook events (payment lifecycle)
+- setting `PORSA_SECRET_KEY`
+- setting `PORSA_WEBHOOK_SECRET`
 - setting `INSFORGE_ADMIN_KEY`
 
 ## 8. Shopify export setup
@@ -182,11 +232,13 @@ After setup, verify these paths:
 2. Create a project from a prompt.
 3. Confirm the editor opens.
 4. Trigger AI generation and verify streamed output appears in preview.
-5. Confirm the projects page loads existing projects.
-6. If ImageKit is configured, verify generated/transformed image URLs use your ImageKit endpoint.
-7. If billing is configured, verify checkout and portal routes work.
-8. If Shopify export is configured, verify an export record and downloadable file are created.
-9. If thumbnails are configured, verify project cards eventually show a saved preview image.
+5. Switch the AI model in the model picker and confirm the next generation
+   succeeds (the choice should survive a page reload).
+6. Confirm the projects page loads existing projects.
+7. Confirm generated storefront images resolve to real `images.unsplash.com` photos.
+8. If billing is configured, verify checkout and portal routes work.
+9. If Shopify export is configured, verify an export record and downloadable file are created.
+10. If thumbnails are configured, verify project cards eventually show a saved preview image.
 
 ## 13. Current scripts
 
@@ -197,6 +249,34 @@ npm run dev
 npm run build
 npm run start
 npm run lint
+npm run typecheck
+npm run test
+npm run smoke:backend
 ```
 
-`typecheck` and `test` are not currently defined as npm scripts, so they are not included in the verification section yet.
+`npm run test` is the deterministic unit suite (no live AI calls).
+`npm run smoke:backend` checks the live InsForge backend (auth, RLS-isolated
+CRUD, admin cleanup) and cleans up after itself.
+
+## 14. Provisioned InsForge backend
+
+The linked InsForge project (`AI-Shopify-template-builder`) is provisioned by
+the migrations in `migrations/`:
+
+- Tables: `projects` (including the selected `ai_model`),
+  `project_pages`, `project_messages`, `project_themes`,
+  `project_revisions` (undo/restore snapshots), `theme_exports`,
+  `subscriptions` — all owner-scoped with RLS (`auth.uid()`), and `user_id`
+  defaults to `auth.uid()` so browser SDK inserts satisfy the policies.
+- Public storage buckets: `theme-exports`, `project-thumbnails`.
+- Auth: email verification is disabled for development
+  (`require_email_verification = false` in `insforge.toml`); re-enable it for
+  production via `npx -y @insforge/cli config apply` after flipping the flag.
+
+Re-provision on a fresh backend with:
+
+```bash
+npx -y @insforge/cli db migrations up --all
+npx -y @insforge/cli storage create-bucket theme-exports
+npx -y @insforge/cli storage create-bucket project-thumbnails
+```

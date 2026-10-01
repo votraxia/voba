@@ -74,9 +74,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const { data } = await insforge.auth.getCurrentUser();
-    setUser(normalizeUser(data));
-    setLoading(false);
+    try {
+      const { data } = await insforge.auth.getCurrentUser();
+      setUser(normalizeUser(data));
+    } catch {
+      // Fail closed: an unreachable backend means "signed out" — never a
+      // permanently-pending loading state that hides every auth-aware control.
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const signOut = useCallback(async () => {
@@ -87,10 +94,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     (async () => {
-      const { data } = await insforge.auth.getCurrentUser();
-      if (!active) return;
-      setUser(normalizeUser(data));
-      setLoading(false);
+      try {
+        const { data } = await insforge.auth.getCurrentUser();
+        if (!active) return;
+        setUser(normalizeUser(data));
+      } catch {
+        // Same fail-closed rule as refresh(): a failed session check must not
+        // leave the app stuck in its loading state.
+        if (!active) return;
+        setUser(null);
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
     return () => {
       active = false;

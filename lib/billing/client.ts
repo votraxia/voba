@@ -5,7 +5,7 @@ import type { SubscriptionStatus } from './types';
 /**
  * Client-side billing helpers — thin wrappers over the server billing routes.
  * They attach the InsForge access token so the server can authorize the caller.
- * No secrets here; all Stripe work happens server-side.
+ * No secrets here; all payment work happens server-side.
  */
 
 /**
@@ -49,8 +49,9 @@ export async function fetchEntitlement(): Promise<EntitlementDTO> {
 }
 
 /**
- * Start Stripe Checkout for a paid plan and redirect the browser to it.
- * Resolves only if the redirect couldn't be performed (error path).
+ * Start checkout with Porsa for a paid plan and redirect the browser to the
+ * hosted payment page (mobile money, cards, bank transfer, USSD). Resolves only
+ * if the redirect couldn't be performed (error path).
  */
 export async function startCheckout(plan: Exclude<PlanId, 'free'>): Promise<void> {
   const res = await fetch('/api/billing/checkout', {
@@ -67,8 +68,9 @@ export async function startCheckout(plan: Exclude<PlanId, 'free'>): Promise<void
 
 /**
  * Cancel (or resume) the current subscription at period end. Returns after the
- * server has updated Stripe; call `refresh()` on the subscription context to
- * pick up the new state (the webhook also syncs it).
+ * server has updated the local state; call `refresh()` on the subscription
+ * context to pick it up. With Porsa, cancelling means the current paid period
+ * simply is not renewed — access keeps running until `current_period_end`.
  */
 export async function setCancelAtPeriodEnd(cancel: boolean): Promise<void> {
   const res = await fetch('/api/billing/cancel', {
@@ -82,7 +84,10 @@ export async function setCancelAtPeriodEnd(cancel: boolean): Promise<void> {
   }
 }
 
-/** Open the Stripe Customer Portal and redirect the browser to it. */
+/**
+ * Open the payment provider's dashboard (payment history, receipts) in a new
+ * tab. With Porsa, Merchant-of-Record invoicing lives on their side.
+ */
 export async function openBillingPortal(): Promise<void> {
   const res = await fetch('/api/billing/portal', {
     method: 'POST',
@@ -92,5 +97,5 @@ export async function openBillingPortal(): Promise<void> {
   if (!res.ok || !payload?.url) {
     throw new Error(payload?.error ?? 'Failed to open billing portal.');
   }
-  window.location.assign(payload.url as string);
+  window.open(payload.url as string, '_blank', 'noopener,noreferrer');
 }

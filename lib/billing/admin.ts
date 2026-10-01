@@ -1,11 +1,12 @@
 import 'server-only';
 import { createAdminClient, createClient } from '@insforge/sdk';
+import { bearerToken as bearerTokenImpl } from '@/lib/server/insforge-server';
 
 /**
  * Server-only InsForge clients for the billing layer.
  *
  * The ADMIN client uses the `ik_` api key from `.insforge/project.json`. It
- * bypasses RLS, so it is used exclusively on the server — for the Stripe webhook
+ * bypasses RLS, so it is used exclusively on the server — for the Porsa webhook
  * (no user session) to write the `subscriptions` table, and for server-side
  * project-limit enforcement. It must NEVER be imported into client code; the
  * `server-only` guard turns that into a build error (AGENTS.md §15).
@@ -25,6 +26,11 @@ function requireBaseUrl(): string {
 
 let admin: ReturnType<typeof createAdminClient> | null = null;
 
+/** True when an admin key is configured in the environment. */
+export function hasAdminKey(): boolean {
+  return Boolean(process.env.INSFORGE_ADMIN_KEY);
+}
+
 /** Admin (service-role) InsForge client. Bypasses RLS — server use only. */
 export function getAdminClient() {
   if (admin) return admin;
@@ -41,6 +47,22 @@ export function getAdminClient() {
 }
 
 /**
+ * A request-scoped InsForge client authorized by the caller's access token
+ * (RLS applies). Used as a FALLBACK for reads when the admin key is absent —
+ * e.g. entitlement checks on `POST /api/projects` still work: RLS lets a user
+ * count their own projects; they fall back to the Free plan for their
+ * subscription row, which they can also read under the "read own subscription"
+ * policy.
+ */
+export function getUserScopedClient(accessToken: string) {
+  return createClient({
+    baseUrl: requireBaseUrl(),
+    anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY ?? '',
+    accessToken,
+  });
+}
+
+/**
  * Resolve the signed-in user from a bearer access token. Creates a per-request
  * client seeded with the token and asks InsForge who it belongs to; a null
  * return means the token is missing, invalid, or expired.
@@ -50,22 +72,14 @@ export async function getUserFromToken(
 ): Promise<{ id: string; email: string } | null> {
   if (!accessToken) return null;
 
-  const anonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
-  const scoped = createClient({
-    baseUrl: requireBaseUrl(),
-    anonKey,
-    accessToken,
-  });
-
+  const scoped = getUserScopedClient(accessToken);
   const { data, error } = await scoped.auth.getCurrentUser();
   if (error || !data) return null;
 
   // getCurrentUser may return the user directly or wrapped in `{ user }`.
   const record = data as Record<string, unknown>;
   const candidate =
-    'user' in record && record.user
-      ? (record.user as Record<string, unknown>)
-      : record;
+    'user' in record && record.user ? (record.user as Record<string, unknown>) : record;
   if (!candidate || typeof candidate.id !== 'string') return null;
 
   return {
@@ -76,8 +90,5 @@ export async function getUserFromToken(
 
 /** Extract the bearer token from an incoming request's Authorization header. */
 export function bearerToken(req: Request): string | null {
-  const header = req.headers.get('authorization') ?? req.headers.get('Authorization');
-  if (!header) return null;
-  const match = header.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1].trim() : null;
+  return bearerTokenImpl(req);
 }

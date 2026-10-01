@@ -8,7 +8,7 @@ import SidebarUser from './SidebarUser';
 import SidebarBilling from './billing/SidebarBilling';
 
 const navigationItems = [
-  { href: '/', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/projects', label: 'Projects', icon: FolderOpen },
   { href: '/billing', label: 'Billing', icon: CreditCard },
 ];
@@ -18,7 +18,7 @@ export default function Sidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[#e7e2df] bg-white px-5 py-8">
-      <Link href="/" className="mb-9 flex items-center gap-3 px-1">
+      <Link href="/dashboard" className="mb-9 flex items-center gap-3 px-1">
         <Image
           src="/logo.png"
           alt="Shopify Theme Builder"

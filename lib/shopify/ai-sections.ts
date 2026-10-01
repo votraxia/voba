@@ -44,6 +44,11 @@ export interface AiConversionResult extends ConvertedContent {
 export interface ConvertPagesInput {
   pages: ExportPage[];
   brandName: string;
+  /**
+   * The project's selected AI model, so section conversion uses the same model
+   * the pages were designed with. Omitted → the server's default model.
+   */
+  model?: string | null;
   styleGuide?: string | null;
   onProgress?: (progress: AiConversionProgress) => void;
   signal?: AbortSignal;
@@ -93,7 +98,7 @@ async function* readNdjson(
  * throws for a single failed region — that region falls back to a raw section.
  */
 export async function convertPagesWithAI(input: ConvertPagesInput): Promise<AiConversionResult> {
-  const { pages, brandName, styleGuide, onProgress, signal } = input;
+  const { pages, brandName, model, styleGuide, onProgress, signal } = input;
 
   // 1. Split every page once and cache the regions.
   const regionsByKey = new Map<string, PageRegion[]>();
@@ -172,7 +177,12 @@ export async function convertPagesWithAI(input: ConvertPagesInput): Promise<AiCo
   const res = await fetch('/api/shopify/sections', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brandName, styleGuide: styleGuide ?? undefined, sections: items }),
+    body: JSON.stringify({
+      model: model ?? undefined,
+      brandName,
+      styleGuide: styleGuide ?? undefined,
+      sections: items,
+    }),
     signal,
   });
   if (!res.ok || !res.body) {

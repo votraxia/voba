@@ -1,83 +1,55 @@
 import { NextRequest } from 'next/server';
-import type Stripe from 'stripe';
-import { getStripe, getWebhookSecret } from '@/lib/billing/stripe';
 import {
-  getSubscriptionByCustomer,
-  upsertSubscription,
-} from '@/lib/billing/subscriptions';
+  isPaymentFailedEvent,
+  isPaymentSucceededEvent,
+  parsePaymentEvent,
+  verifyWebhookSignature,
+} from '@/lib/billing/porsa';
+import { getSubscriptionByCustomer, upsertSubscription } from '@/lib/billing/subscriptions';
 import type { BillingInterval, PlanId } from '@/lib/billing/plans';
-import type { SubscriptionStatus } from '@/lib/billing/types';
 
 export const runtime = 'nodejs';
 
 /**
- * Stripe webhook — the source of truth for subscription state. Every relevant
- * event is verified against the signing secret, then mirrored into the
- * `subscriptions` table so local permissions (project limit, export) update
- * automatically after checkout, renewal, cancellation, or payment failure.
+ * Porsa webhook — the source of truth for subscription state (their blueprint:
+ * "always store the raw payload", "validate the signature... timing-safe").
  *
- * The raw request body is required for signature verification, so we read it
+ * Every payment event is HMAC-verified against the raw body, then mirrored into
+ * the `subscriptions` table so permissions (project limit, export, premium
+ * models) update automatically. Because Porsa recurring billing is not GA yet,
+ * each successful payment = one billing period: the event's period dates (or a
+ * computed interval) extend `current_period_end`, and an expired period drops
+ * the entitlement until the user pays again — all computed from data Porsa
+ * itself sends, with no local clock-based grants.
+ *
+ * The raw request body is required for signature verification, so it is read
  * with `req.text()` (App Router route handlers do not pre-parse the body).
  */
 export async function POST(req: NextRequest) {
-  const signature = req.headers.get('stripe-signature');
-  if (!signature) {
-    return Response.json({ error: 'Missing signature.' }, { status: 400 });
-  }
+  const signature = req.headers.get('x-porsa-signature') ?? req.headers.get('x-signature');
+  const raw = await req.text();
 
-  let stripe: Stripe;
-  let event: Stripe.Event;
-  try {
-    stripe = getStripe();
-    const raw = await req.text();
-    event = stripe.webhooks.constructEvent(raw, signature, getWebhookSecret());
-  } catch (err) {
-    // A verification failure means the payload isn't trustworthy — reject it.
-    return Response.json(
-      { error: err instanceof Error ? err.message : 'Invalid webhook.' },
-      { status: 400 }
-    );
+  if (!verifyWebhookSignature(raw, signature)) {
+    // An unverifiable payload is untrusted — never process it.
+    return Response.json({ error: 'Invalid signature.' }, { status: 400 });
   }
 
   try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.subscription) {
-          const sub = await stripe.subscriptions.retrieve(
-            typeof session.subscription === 'string'
-              ? session.subscription
-              : session.subscription.id
-          );
-          await syncSubscription(sub);
-        }
-        break;
-      }
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted': {
-        await syncSubscription(event.data.object as Stripe.Subscription);
-        break;
-      }
-      case 'invoice.paid':
-      case 'invoice.payment_failed': {
-        // Renewal or dunning — re-pull the subscription to capture the new
-        // period end / status.
-        const invoice = event.data.object as Stripe.Invoice;
-        const subId = subscriptionIdFromInvoice(invoice);
-        if (subId) {
-          const sub = await stripe.subscriptions.retrieve(subId);
-          await syncSubscription(sub);
-        }
-        break;
-      }
-      default:
-        // Unhandled event types are acknowledged so Stripe stops retrying.
-        break;
+    const event = parsePaymentEvent(raw);
+    if (!event) {
+      // Malformed payloads are acknowledged so Porsa stops retrying them.
+      return Response.json({ received: true, ignored: 'unparseable' });
     }
+
+    if (isPaymentSucceededEvent(event.type)) {
+      await syncPaidPayment(event);
+    } else if (isPaymentFailedEvent(event.type)) {
+      await syncFailedPayment(event);
+    }
+    // Unhandled event types are acknowledged so Porsa stops retrying.
     return Response.json({ received: true });
   } catch (err) {
-    // Return 500 so Stripe retries transient failures (e.g. DB hiccup).
+    // Return 500 so Porsa retries transient failures (e.g. a DB hiccup).
     return Response.json(
       { error: err instanceof Error ? err.message : 'Webhook handler failed.' },
       { status: 500 }
@@ -85,84 +57,90 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** Map a Stripe subscription onto our `subscriptions` row and persist it. */
-async function syncSubscription(sub: Stripe.Subscription): Promise<void> {
-  const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
+/** Persist the state a successful payment implies. */
+async function syncPaidPayment(event: NonNullable<ReturnType<typeof parsePaymentEvent>>) {
+  const userId = await resolveUserId(event);
+  if (!userId) return; // Nothing to attribute the payment to — skip, don't guess.
 
-  // Resolve the InsForge user id from metadata first, falling back to the stored
-  // customer mapping (set when the customer was created at checkout).
-  let userId: string | null = sub.metadata?.insforge_user_id ?? null;
-  if (!userId) {
-    const existing = await getSubscriptionByCustomer(customerId);
-    userId = existing?.user_id ?? null;
-  }
-  if (!userId) {
-    // Nothing we can attribute this subscription to — skip rather than guess.
-    return;
-  }
-
-  const item = sub.items.data[0];
-  const interval = (item?.price.recurring?.interval ?? null) as BillingInterval | null;
-  const plan = planFromSubscription(sub, interval);
-  const status = mapStatus(sub.status);
+  const plan = planFromMetadata(event.metadata.plan);
+  const interval = intervalForPlan(plan);
+  // Provider-reported period wins; otherwise compute it from the plan interval
+  // measured from now (first payment may also omit period fields).
+  const now = new Date();
+  const start = event.periodStart ?? now.toISOString();
+  const end =
+    event.periodEnd ??
+    addInterval(start, interval) ??
+    addInterval(now.toISOString(), interval);
 
   await upsertSubscription({
     userId,
-    stripeCustomerId: customerId,
-    stripeSubscriptionId: sub.id,
+    porsaCustomerId: event.metadata.porsa_customer_id ?? null,
+    porsaPaymentId: event.paymentId,
     plan,
-    billingInterval: status === 'canceled' ? null : interval,
-    status,
-    currentPeriodStart: toIso(item?.current_period_start),
-    currentPeriodEnd: toIso(item?.current_period_end),
-    cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+    billingInterval: interval,
+    status: 'active',
+    currentPeriodStart: start,
+    currentPeriodEnd: end,
+    cancelAtPeriodEnd: false,
   });
 }
 
-/** Prefer the plan stamped in metadata; otherwise derive it from the interval. */
-function planFromSubscription(
-  sub: Stripe.Subscription,
-  interval: BillingInterval | null
-): PlanId {
-  if (mapStatus(sub.status) === 'canceled') return 'free';
-  const metaPlan = sub.metadata?.plan;
-  if (metaPlan === 'monthly' || metaPlan === 'yearly') return metaPlan;
-  if (interval === 'year') return 'yearly';
-  if (interval === 'month') return 'monthly';
+/** Persist the state a definitively failed payment implies (access ends). */
+async function syncFailedPayment(event: NonNullable<ReturnType<typeof parsePaymentEvent>>) {
+  const userId = await resolveUserId(event);
+  if (!userId) return;
+
+  const existing = await getSubscriptionByCustomer(event.metadata.porsa_customer_id ?? '');
+  await upsertSubscription({
+    userId,
+    porsaCustomerId: event.metadata.porsa_customer_id ?? existing?.porsa_customer_id ?? null,
+    porsaPaymentId: event.paymentId,
+    plan: 'free',
+    billingInterval: null,
+    status: 'canceled',
+    currentPeriodStart: existing?.current_period_start ?? null,
+    currentPeriodEnd: existing?.current_period_end ?? null,
+    cancelAtPeriodEnd: false,
+  });
+}
+
+/**
+ * Attribute an event to a user: metadata first (stamped at checkout), then the
+ * stored customer mapping.
+ */
+async function resolveUserId(
+  event: NonNullable<ReturnType<typeof parsePaymentEvent>>
+): Promise<string | null> {
+  const metaUserId = event.metadata.insforge_user_id;
+  if (metaUserId) return metaUserId;
+
+  if (event.metadata.porsa_customer_id) {
+    const existing = await getSubscriptionByCustomer(event.metadata.porsa_customer_id);
+    if (existing) return existing.user_id;
+  }
+  return null;
+}
+
+function planFromMetadata(value: string | undefined): PlanId {
+  if (value === 'monthly' || value === 'yearly') return value;
   return 'free';
 }
 
-/** Stripe statuses map 1:1 to our union; canceled/incomplete_expired drop access. */
-function mapStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
-  switch (status) {
-    case 'active':
-    case 'trialing':
-    case 'past_due':
-    case 'canceled':
-    case 'unpaid':
-    case 'incomplete':
-    case 'incomplete_expired':
-    case 'paused':
-      return status;
-    default:
-      return 'free';
-  }
-}
-
-function toIso(unixSeconds: number | null | undefined): string | null {
-  if (!unixSeconds) return null;
-  return new Date(unixSeconds * 1000).toISOString();
-}
-
-/** Newer Stripe API versions attach the subscription id via the invoice parent. */
-function subscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
-  const parent = (invoice as unknown as {
-    parent?: { subscription_details?: { subscription?: string | { id: string } } };
-    subscription?: string | { id: string } | null;
-  });
-  const fromParent = parent.parent?.subscription_details?.subscription;
-  if (fromParent) return typeof fromParent === 'string' ? fromParent : fromParent.id;
-  const legacy = parent.subscription;
-  if (legacy) return typeof legacy === 'string' ? legacy : legacy.id;
+function intervalForPlan(plan: PlanId): BillingInterval | null {
+  if (plan === 'yearly') return 'year';
+  if (plan === 'monthly') return 'month';
   return null;
 }
+
+/** Add one billing interval to an ISO instant, or null when interval is null. */
+function addInterval(iso: string, interval: BillingInterval | null): string | null {
+  if (!interval) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  if (interval === 'month') d.setMonth(d.getMonth() + 1);
+  if (interval === 'year') d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString();
+}
+
+

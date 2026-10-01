@@ -24,6 +24,8 @@ export interface RunExportInput {
   themeCss: string;
   /** The project's shared style guide, so AI section conversion stays on-brand. */
   styleGuide?: string | null;
+  /** The project's AI model, so sections match how the pages were designed. */
+  model?: string | null;
   onProgress?: (progress: ExportProgress) => void;
 }
 
@@ -92,6 +94,7 @@ export async function runShopifyExport(input: RunExportInput): Promise<RunExport
   const converted = await convertPagesWithAI({
     pages,
     brandName: input.projectName || 'AI Storefront',
+    model: input.model ?? null,
     styleGuide: input.styleGuide ?? null,
     onProgress: ({ processed, total }) => {
       const ratio = total > 0 ? processed / total : 1;

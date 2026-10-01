@@ -11,9 +11,18 @@ import {
   type ReactNode,
 } from 'react';
 import { createEventParser, type BuilderPage } from '@/lib/ai/events';
+import { resolveAIModel, type AIModelId } from '@/lib/ai/models';
 import { sanitizeGeneratedHtml } from '@/lib/ai/sanitize';
 import { applyPatchOperations } from '@/lib/ai/patch';
+import {
+  createProjectRevision,
+  getProjectRevisions,
+  restoreRevisionData,
+  type RevisionPageSnapshot,
+} from '@/lib/revisions';
+import { authHeaders } from '@/lib/auth-headers';
 import { getProjectPages, savePage, deletePage, clearPages } from '@/lib/pages';
+import { saveProjectAIModel } from '@/lib/projects';
 import { getProjectMessages, appendMessages, clearMessages } from '@/lib/messages';
 import { getProjectTheme, saveTheme, clearTheme } from '@/lib/theme';
 import { captureAndSaveThumbnail } from '@/lib/thumbnail';
@@ -37,6 +46,13 @@ export interface PageState extends BuilderPage {
   status: PageStatus;
 }
 
+/** Lightweight revision metadata exposed to the UI. */
+export interface RevisionInfo {
+  id: string;
+  label: string;
+  createdAt: string;
+}
+
 interface BuilderContextValue {
   messages: ChatMessage[];
   pages: PageState[];
@@ -46,6 +62,13 @@ interface BuilderContextValue {
   themeCss: string;
   /** The project's shared style guide (brand, palette, component classes), if generated. */
   styleGuide: string | null;
+  /** The AI model this project generates with (a catalog id). */
+  aiModel: AIModelId;
+  /**
+   * Switch the project's AI model. Applies to later generations and is persisted
+   * on the project; resolves false when the choice could not be saved.
+   */
+  setAiModel: (id: string) => Promise<boolean>;
   isStreaming: boolean;
   generatingPageId: string | null;
   isImageGenerating: boolean;
@@ -60,6 +83,22 @@ interface BuilderContextValue {
    */
   updatePageHtml: (pageId: string, html: string) => string;
   newChat: () => void;
+  /** Force-save the current state now; resolves to true when it persisted. */
+  saveNow: () => Promise<boolean>;
+  /** True while the last save attempt failed (no error mid-turn). */
+  saveError: boolean;
+  /** True while a save is in flight. */
+  saving: boolean;
+  /** Revision history for undo/restore (AGENTS.md §8). */
+  revisions: RevisionInfo[];
+  /** True while a revision is being restored. */
+  isRestoring: boolean;
+  /** Capture a snapshot now (called before a risky change). */
+  captureRevision: (label: string) => void;
+  /** Undo to the previous revision (returns true when one was restored). */
+  undo: () => Promise<boolean>;
+  /** Restore a specific revision by id. */
+  restoreRevision: (id: string) => Promise<boolean>;
 }
 
 const BuilderContext = createContext<BuilderContextValue | null>(null);
@@ -110,7 +149,13 @@ function readSnapshot(projectId: string): BuilderSnapshot | null {
 
 function writeSnapshot(projectId: string, snapshot: BuilderSnapshot): void {
   if (typeof window === 'undefined') return;
-  window.sessionStorage.setItem(getStorageKey(projectId), JSON.stringify(snapshot));
+  try {
+    // Large projects (HTML-heavy pages) can exceed the sessionStorage quota —
+    // persistence must degrade gracefully instead of throwing inside an effect.
+    window.sessionStorage.setItem(getStorageKey(projectId), JSON.stringify(snapshot));
+  } catch {
+    // Quota exceeded or storage disabled — the DB remains the source of truth.
+  }
 }
 
 /** Merge planned tabs into existing pages without duplicating ids. */
@@ -127,10 +172,13 @@ function mergePages(existing: PageState[], planned: BuilderPage[]): PageState[] 
 export function BuilderProvider({
   projectId,
   initialPrompt,
+  initialAiModel,
   children,
 }: {
   projectId: string;
   initialPrompt?: string;
+  /** The project's saved model selection (null = never chosen → app default). */
+  initialAiModel?: string | null;
   children: ReactNode;
 }) {
   // State starts empty so the first client render matches the server-rendered
@@ -140,11 +188,27 @@ export function BuilderProvider({
   const [pages, setPages] = useState<PageState[]>([]);
   const [activePageId, setActivePageId] = useState<string | null>(null);
   const [themeCss, setThemeCss] = useState('');
+  // The model this project generates with. Mirrored in a ref so the streaming
+  // request reads the latest value without re-creating `sendMessage`.
+  const [aiModel, setAiModelState] = useState<AIModelId>(() => resolveAIModel(initialAiModel));
+  const aiModelRef = useRef<AIModelId>(resolveAIModel(initialAiModel));
   const [isStreaming, setIsStreaming] = useState(false);
   const [generatingPageId, setGeneratingPageId] = useState<string | null>(null);
   const [isImageGenerating, setIsImageGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  // Save-state surfaced to the UI so a failed persist is never silent.
+  const [saveError, setSaveError] = useState(false);
+  // Mirror for non-reactive reads inside async callbacks.
+  const stateSaveErrorRef = useRef(false);
+  const updateSaveError = useCallback((failed: boolean) => {
+    stateSaveErrorRef.current = failed;
+    setSaveError(failed);
+  }, []);
+  const [saving, setSaving] = useState(false);
+  // Revision history (AGENTS.md §8): newest first.
+  const [revisions, setRevisions] = useState<RevisionInfo[]>([]);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   // Mirror of state read inside the async streaming loop (avoids stale closures).
   const stateRef = useRef({ messages, pages, activePageId });
@@ -167,6 +231,10 @@ export function BuilderProvider({
   // HTML last rasterized into the project's preview thumbnail — so an unchanged
   // page never triggers a redundant re-capture.
   const lastThumbnailHtmlRef = useRef<string | null>(null);
+  // Capture a revision snapshot before a new turn changes the build, so every
+  // accepted change is reversible (AGENTS.md §8). A ref keeps the snapshot
+  // handoff between the pre-turn hook and the post-turn persist.
+  const preTurnSnapshotRef = useRef<RevisionPageSnapshot[] | null>(null);
 
   // Load this project's saved pages + chat once, after mount. The database is the
   // source of truth across sessions; a same-session sessionStorage snapshot is
@@ -183,6 +251,14 @@ export function BuilderProvider({
     };
 
     (async () => {
+      // Re-sync the model selection with this project. The provider only mounts
+      // once the project has loaded, so this normally matches the initial value —
+      // it matters when navigating straight from one editor to another, where the
+      // component is reused and the previous project's choice would linger.
+      const resolvedModel = resolveAIModel(initialAiModel);
+      aiModelRef.current = resolvedModel;
+      setAiModelState(resolvedModel);
+
       try {
         const [dbPages, dbMessages, dbTheme] = await Promise.all([
           getProjectPages(projectId),
@@ -238,7 +314,7 @@ export function BuilderProvider({
     return () => {
       active = false;
     };
-  }, [projectId]);
+  }, [projectId, initialAiModel]);
 
   // Persist the session — but only after hydration, so we never overwrite a
   // saved session with the empty initial state.
@@ -268,6 +344,18 @@ export function BuilderProvider({
     const outgoing = [...priorMessages, { role: 'user' as const, content }];
     const isImageEditRequest = options?.source === 'image-edit';
 
+    // Snapshot the current build BEFORE the turn can change it, so the change
+    // is reversible (AGENTS.md §8: every accepted edit creates a revision).
+    preTurnSnapshotRef.current = stateRef.current.pages.map((p, i) => ({
+      pageKey: p.id,
+      label: p.label,
+      type: p.type,
+      path: p.path,
+      html: p.html,
+      status: p.status,
+      position: i,
+    }));
+
     const assistantId = newId();
     erroredRef.current = false;
     setError(null);
@@ -291,7 +379,7 @@ export function BuilderProvider({
       try {
         const res = await fetch('/api/ai', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
             messages: outgoing.map(({ role, content }) => ({ role, content })),
             pages: stateRef.current.pages.map(({ id, label, type, path }) => ({ id, label, type, path })),
@@ -303,6 +391,9 @@ export function BuilderProvider({
             // The project's shared theme (if generated). Lets the server reuse the
             // same design system and skip regenerating it.
             theme: themeRef.current,
+            // The project's model choice; the server validates it against the
+            // curated catalog before use.
+            model: aiModelRef.current,
           }),
           signal: controller.signal,
         });
@@ -426,7 +517,10 @@ export function BuilderProvider({
   // project (AGENTS.md §8).
   const persistTurn = useCallback(
     async (currentPages: PageState[], currentMessages: ChatMessage[]) => {
+      let snapshot: RevisionPageSnapshot[] | null = null;
       try {
+        setSaving(true);
+
         // Save the project's global theme first, so pages that reference its
         // shared classes are never persisted ahead of the stylesheet itself.
         if (themeDirtyRef.current && themeRef.current) {
@@ -463,9 +557,37 @@ export function BuilderProvider({
               })
             )
           );
+
+          // The build changed — capture the pre-turn snapshot as a revision so
+          // the user can undo (AGENTS.md §8). Best-effort: a failed revision
+          // never blocks persistence of the pages themselves.
+          snapshot = preTurnSnapshotRef.current;
+          preTurnSnapshotRef.current = null;
+          if (snapshot && snapshot.length >= 0) {
+            try {
+              const row = await createProjectRevision(projectId, {
+                label: newMessages.find((m) => m.role === 'user')?.content.slice(0, 80) ?? 'Update',
+                pages: snapshot,
+              });
+              setRevisions((prev) =>
+                [
+                  { id: row.id, label: row.label, createdAt: row.created_at },
+                  ...prev,
+                ].slice(0, 30)
+              );
+            } catch {
+              // Revision history is a safety net, not a hard dependency.
+            }
+          }
         }
+
+        updateSaveError(false);
       } catch {
-        // Persistence is best-effort; the in-memory + sessionStorage state stays.
+        // Surface the failure instead of swallowing it — the user must know
+        // their work is only in-memory until a save succeeds.
+        updateSaveError(true);
+      } finally {
+        setSaving(false);
       }
 
       // Refresh the project's card thumbnail from the home (or first ready) page
@@ -479,7 +601,7 @@ export function BuilderProvider({
         void captureAndSaveThumbnail(projectId, previewPage.html, themeRef.current?.css ?? '');
       }
     },
-    [projectId]
+    [projectId, updateSaveError]
   );
 
   // When a turn finishes streaming, save the final committed state. Runs after
@@ -534,6 +656,164 @@ export function BuilderProvider({
   );
 
   const setActivePage = useCallback((id: string) => setActivePageId(id), []);
+
+  // Switch the project's AI model. Optimistic so the very next message uses the
+  // new model, and reverted if the save fails — the picker must never claim a
+  // model that isn't actually persisted on the project.
+  const setAiModel = useCallback(
+    async (id: string): Promise<boolean> => {
+      const next = resolveAIModel(id);
+      const previous = aiModelRef.current;
+      if (next === previous) return true;
+
+      aiModelRef.current = next;
+      setAiModelState(next);
+
+      try {
+        await saveProjectAIModel(projectId, next);
+        return true;
+      } catch {
+        aiModelRef.current = previous;
+        setAiModelState(previous);
+        return false;
+      }
+    },
+    [projectId]
+  );
+
+  // Force-save the current state right now (the editor's Save button). Persists
+  // theme, chat, pages, and the thumbnail — the same path as the automatic
+  // post-turn save — and reports whether it fully succeeded.
+  const saveNow = useCallback(async (): Promise<boolean> => {
+    if (stateRef.current.pages.length === 0 && stateRef.current.messages.length === 0) {
+      return true; // nothing to save
+    }
+    pagesDirtyRef.current = true;
+    try {
+      await persistTurn(stateRef.current.pages, stateRef.current.messages);
+      // persistTurn flips saveError on failure; read the latest flag from a
+      // state snapshot rather than adding it as a dependency (it would change
+      // identity on every save and re-create this callback mid-flight).
+      return !stateSaveErrorRef.current;
+    } catch {
+      return false;
+    }
+  }, [persistTurn]);
+
+  // Snapshot the current pages as a manual revision ("Save version").
+  const captureRevision = useCallback(
+    (label: string) => {
+      const snapshot: RevisionPageSnapshot[] = stateRef.current.pages.map((p, i) => ({
+        pageKey: p.id,
+        label: p.label,
+        type: p.type,
+        path: p.path,
+        html: p.html,
+        status: p.status,
+        position: i,
+      }));
+      if (snapshot.length === 0) return;
+      void createProjectRevision(projectId, { label, pages: snapshot })
+        .then((row) => {
+          setRevisions((prev) =>
+            [{ id: row.id, label: row.label, createdAt: row.created_at }, ...prev].slice(0, 30)
+          );
+        })
+        .catch(() => {
+          // Best-effort — the snapshot still lives in the page state.
+        });
+    },
+    [projectId]
+  );
+
+  const applyRestoredPages = useCallback((snapshot: RevisionPageSnapshot[]) => {
+    const restored: PageState[] = snapshot.map((p) => ({
+      id: p.pageKey,
+      label: p.label,
+      type: p.type,
+      path: p.path,
+      html: p.html,
+      status: p.html ? 'ready' : 'idle',
+    }));
+    setPages(restored);
+    setActivePageId((current) =>
+      restored.some((p) => p.id === current) ? current : restored[0]?.id ?? null
+    );
+  }, []);
+
+  // Restore a specific revision: rewrites the saved pages, refreshes history.
+  const restoreRevision = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (isStreaming || isRestoring) return false;
+      setIsRestoring(true);
+      try {
+        // First snapshot the CURRENT state, so the restore itself is reversible.
+        const currentSnapshot: RevisionPageSnapshot[] = stateRef.current.pages.map((p, i) => ({
+          pageKey: p.id,
+          label: p.label,
+          type: p.type,
+          path: p.path,
+          html: p.html,
+          status: p.status,
+          position: i,
+        }));
+        if (currentSnapshot.length > 0) {
+          try {
+            await createProjectRevision(projectId, {
+              label: 'Before restore',
+              pages: currentSnapshot,
+            });
+          } catch {
+            // Non-fatal.
+          }
+        }
+
+        // Pull the full revision (list responses may be trimmed) and apply it.
+        const all = await getProjectRevisions(projectId);
+        const target = all.find((r) => r.id === id);
+        if (!target || !Array.isArray(target.pages)) {
+          return false;
+        }
+        await restoreRevisionData(projectId, target.pages);
+        applyRestoredPages(target.pages);
+
+        const history = all.map((r) => ({ id: r.id, label: r.label, createdAt: r.created_at }));
+        setRevisions(history);
+        updateSaveError(false);
+        return true;
+      } catch {
+        updateSaveError(true);
+        return false;
+      } finally {
+        setIsRestoring(false);
+      }
+    },
+    [projectId, isStreaming, isRestoring, applyRestoredPages, updateSaveError]
+  );
+
+  // Undo: restore the newest revision (the pre-last-turn state).
+  const undo = useCallback(async (): Promise<boolean> => {
+    if (isStreaming || isRestoring || revisions.length === 0) return false;
+    return restoreRevision(revisions[0].id);
+  }, [isStreaming, isRestoring, revisions, restoreRevision]);
+
+  // Load the revision history once on mount (for the undo popover).
+  useEffect(() => {
+    let active = true;
+    void getProjectRevisions(projectId)
+      .then((rows) => {
+        if (!active) return;
+        setRevisions(
+          rows.map((r) => ({ id: r.id, label: r.label, createdAt: r.created_at }))
+        );
+      })
+      .catch(() => {
+        // History is optional UI — the builder works without it.
+      });
+    return () => {
+      active = false;
+    };
+  }, [projectId]);
 
   const closePage = useCallback(
     (id: string) => {
@@ -606,6 +886,8 @@ export function BuilderProvider({
     activePage,
     themeCss,
     styleGuide: themeRef.current?.styleGuide ?? null,
+    aiModel,
+    setAiModel,
     isStreaming,
     generatingPageId,
     isImageGenerating,
@@ -615,6 +897,14 @@ export function BuilderProvider({
     closePage,
     updatePageHtml,
     newChat,
+    saveNow,
+    saveError,
+    saving,
+    revisions,
+    isRestoring,
+    captureRevision,
+    undo,
+    restoreRevision,
   };
 
   return <BuilderContext.Provider value={value}>{children}</BuilderContext.Provider>;

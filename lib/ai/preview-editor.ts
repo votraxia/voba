@@ -12,6 +12,7 @@
  *   iframe -> parent : { type: 'builder:bodyChanged', html }         // after any edit
  *   iframe -> parent : { type: 'builder:requestAIEdit', targetId, prompt }
  *   iframe -> parent : { type: 'builder:requestAIImage', targetId, prompt }
+ *   iframe -> parent : { type: 'builder:findImage', targetId, prompt }  // Unsplash search
  *
  * Editable units are BOTH whole sections (`data-builder-section-id`) and the
  * granular elements inside them (any element under the cursor — headings,
@@ -49,64 +50,20 @@ export function previewEditorScript(): string {
 
   function post(msg) { if (parentWin) parentWin.postMessage(msg, '*'); }
 
-  // ------------------------- ImageKit URL helpers ---------------------------
-  // Mirror of lib/images/imagekit.ts, written for the sandboxed iframe. Uses the
-  // public delivery endpoint injected as window.__IK_ENDPOINT__ (no secret).
-  function ikEndpoint() {
-    var e = window.__IK_ENDPOINT__ || '';
-    while (e.length && e.charAt(e.length - 1) === '/') e = e.slice(0, -1);
-    return e;
-  }
-  function ikSlug(text) {
-    var s = (text || '').toLowerCase(), out = '';
-    for (var i = 0; i < s.length; i++) {
-      var c = s.charAt(i);
-      out += ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) ? c : '-';
-    }
-    var parts = out.split('-').filter(function (p) { return p; });
-    var slug = parts.join('-');
-    if (slug.length > 60) slug = slug.slice(0, 60);
-    return slug || 'image';
-  }
-  function ikIsImageKit(url) {
-    if (!url) return false;
-    var ep = ikEndpoint();
-    if (ep && url.indexOf(ep) === 0) return true;
-    return url.indexOf('ik.imagekit.io/') > -1 || url.indexOf('/ik-genimg-') > -1;
-  }
-  function ikBuildGen(prompt, w, h) {
-    var ep = ikEndpoint();
-    if (!ep) return '';
-    var text = (prompt || '').trim() || 'clean modern product photo';
-    // Date-based seed varies the path so each generation returns a fresh image
-    // (ik-genimg caches per path/filename).
-    var file = ikSlug(text) + '-' + Date.now().toString(36) + '.jpg';
-    var tr = [];
-    if (w) tr.push('w-' + Math.round(w));
-    if (h) tr.push('h-' + Math.round(h));
-    var q = tr.length ? ('?tr=' + tr.join(',')) : '';
-    return ep + '/ik-genimg-prompt-' + encodeURIComponent(text) + '/' + file + q;
-  }
-  function ikAddTransform(url, token) {
-    if (!url || !token) return url;
-    var hash = '', h = url.indexOf('#');
-    if (h > -1) { hash = url.slice(h); url = url.slice(0, h); }
-    var base = url, query = '', q = url.indexOf('?');
-    if (q > -1) { base = url.slice(0, q); query = url.slice(q + 1); }
-    var params = query ? query.split('&') : [], found = false;
-    for (var i = 0; i < params.length; i++) {
-      if (params[i].indexOf('tr=') === 0) {
-        found = true;
-        var ex = params[i].slice(3);
-        params[i] = 'tr=' + (ex ? ex + ':' + token : token);
-      }
-    }
-    if (!found) params.push('tr=' + token);
-    return base + '?' + params.join('&') + hash;
-  }
-  function ikB64(text) { return btoa(unescape(encodeURIComponent(text || ''))); }
-  function ikPromptToken(effect, prompt) {
-    return 'e-' + effect + '-prompte-' + encodeURIComponent(ikB64(prompt));
+  // ------------------------------ Unsplash URL ------------------------------
+  // Keeps hotlink tracking params intact when re-sizing (API Guidelines require
+  // the ixid param to survive). Pure URL math — no key, no API call.
+  function unsplashSize(url, w, h) {
+    if (!url || url.indexOf('images.unsplash.com/') === -1) return url;
+    try {
+      var u = new URL(url);
+      if (w) u.searchParams.set('w', String(Math.round(w)));
+      if (h) u.searchParams.set('h', String(Math.round(h)));
+      if ((w && h) || u.searchParams.has('h')) u.searchParams.set('fit', 'crop');
+      if (!u.searchParams.has('q')) u.searchParams.set('q', '80');
+      if (!u.searchParams.has('auto')) u.searchParams.set('auto', 'format');
+      return u.toString();
+    } catch (e) { return url; }
   }
 
   // ---- icons (inline SVG so we don't need an icon library in the iframe) ----
@@ -120,6 +77,7 @@ export function previewEditorScript(): string {
     ai: svg('<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.7 1.8L21 17l-1.3.6L19 19l-.7-1.4L17 17l1.3-.2z"/>'),
     image: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.6"/><path d="M21 15l-5-5L5 21"/>'),
     aiImage: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4"/><path d="M16 7l.8 2L19 9.8 16.8 10.6 16 13l-.8-2.4L13 9.8 15.2 9z"/>'),
+    search: svg('<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'),
     style: svg('<line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2"/>'),
     dup: svg('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'),
     up: svg('<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/>'),
@@ -189,8 +147,8 @@ export function previewEditorScript(): string {
     // Strip transient image markers the preview shell adds (loading shimmer /
     // fallback watch) so persisted HTML stays clean.
     clone.querySelectorAll('img').forEach(function (n) {
-      n.classList.remove('__ik-ready');
-      n.removeAttribute('data-ik-fb');
+      n.classList.remove('__img-ready');
+      n.removeAttribute('data-img-fb');
       if (n.getAttribute('class') === '') n.removeAttribute('class');
     });
     post({ type: 'builder:bodyChanged', html: clone.innerHTML });
@@ -319,7 +277,7 @@ export function previewEditorScript(): string {
     toolbar.appendChild(tbButton(ICON.ai, 'Edit with AI', false, function () { openAIPanel('edit'); }));
     if (isImageTarget(el)) {
       toolbar.appendChild(tbButton(ICON.image, 'Change image', false, openImagePanel));
-      toolbar.appendChild(tbButton(ICON.aiImage, 'Generate & transform image (ImageKit)', false, openImageKitPanel));
+      toolbar.appendChild(tbButton(ICON.search, 'Find image on Unsplash', false, openFindImagePanel));
     }
     toolbar.appendChild(tbButton(ICON.style, 'Edit style', false, openStylePanel));
     toolbar.appendChild(sep());
@@ -642,134 +600,89 @@ export function previewEditorScript(): string {
     setTimeout(function () { ta.focus(); }, 0);
   }
 
-  // --------------------- ImageKit generate / transform ----------------------
-  // The action popover for images: generate a brand-new image from a prompt, or
-  // apply ImageKit AI transforms (remove bg, upscale, retouch, drop shadow,
-  // variation, replace background, AI edit) directly on the delivery URL. These
-  // are pure URL operations — instant, no AI round-trip.
+  // --------------------- Unsplash find-image panel -------------------------
+  // Ask the server to match a description to a real Unsplash photo. The search
+  // runs server-side (the access key never enters the iframe); results are
+  // hotlinked directly, sized for the slot, with photographer attribution.
   function firstImg(el) {
     return el.tagName === 'IMG' ? el : el.querySelector('img');
   }
 
-  function openImageKitPanel() {
+  function openFindImagePanel() {
     if (!active) return;
     var el = active;
     selectTarget(el);
     var img = firstImg(el);
-    var body = buildPanel('AI image · ImageKit');
+    var body = buildPanel('Find image · Unsplash');
 
-    if (!ikEndpoint()) {
-      var warn = document.createElement('p');
-      warn.className = '__be-hint';
-      warn.textContent = 'Set NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT in .env.local to enable AI image generation and transforms.';
-      body.appendChild(warn);
-      return;
-    }
     if (!img) {
       var none = document.createElement('p');
       none.className = '__be-hint';
-      none.textContent = 'No image here to work with. Use "Change image" to add one first.';
+      none.textContent = 'No image here to replace. Use "Change image" to add one first.';
       body.appendChild(none);
       return;
     }
 
-    function refresh() {
-      img.classList.remove('__ik-ready');
-      if (window.__ikDecorate) window.__ikDecorate();
-      emitChange();
-    }
-    function applyToken(token) {
-      var cur = img.getAttribute('src') || img.src;
-      if (!ikIsImageKit(cur)) return;
-      img.setAttribute('src', ikAddTransform(cur, token));
-      refresh();
-    }
-
-    // --- Generate a new image from a prompt ---
     var ta = document.createElement('textarea');
-    ta.placeholder = 'Describe the image to generate…';
-    ta.value = img.getAttribute('data-ik-prompt') || img.getAttribute('alt') || '';
-    body.appendChild(row('Generate a new image', ta));
-    var gen = document.createElement('button');
-    gen.className = '__be-btn';
-    gen.textContent = 'Generate image';
-    gen.addEventListener('click', function () {
+    ta.placeholder = 'Describe the photo you want, e.g. “barista pouring latte art, warm morning light”';
+    ta.value = img.getAttribute('data-image-prompt') || img.getAttribute('alt') || '';
+    body.appendChild(row('Photo description', ta));
+
+    var status = document.createElement('p');
+    status.className = '__be-hint';
+    body.appendChild(status);
+
+    var find = document.createElement('button');
+    find.className = '__be-btn';
+    find.textContent = 'Find photo';
+    find.addEventListener('click', function () {
       var p = ta.value.trim();
       if (!p) return;
-      var wAttr = img.getAttribute('width');
-      var hAttr = img.getAttribute('height');
-      var w = wAttr ? parseInt(wAttr, 10) : (img.clientWidth || 1200);
-      var h = hAttr ? parseInt(hAttr, 10) : 0;
-      var url = ikBuildGen(p, w, h);
-      if (!url) return;
-      img.setAttribute('data-ik-prompt', p);
-      img.setAttribute('src', url);
-      refresh();
-      // Rebuild so the AI-transform controls appear now that the image is IK.
-      openImageKitPanel();
+      find.disabled = true;
+      status.textContent = 'Searching Unsplash…';
+
+      // The iframe is sandboxed WITHOUT allow-same-origin, so it cannot fetch
+      // same-origin APIs — ask the parent to do the call and message the result.
+      pendingImageSearch = { img: img, targetId: targetIdOf(el), prompt: p, status: status, btn: find };
+      post({ type: 'builder:findImage', targetId: targetIdOf(el), prompt: p });
     });
-    body.appendChild(gen);
-
-    var curSrc = img.getAttribute('src') || img.src || '';
-    if (!ikIsImageKit(curSrc)) {
-      var tip = document.createElement('p');
-      tip.className = '__be-hint';
-      tip.textContent = 'Generate an image above to unlock AI transforms (remove background, upscale, replace background, and more).';
-      body.appendChild(tip);
-      setTimeout(function () { ta.focus(); }, 0);
-      return;
-    }
-
-    // --- One-click AI transforms ---
-    var chips = document.createElement('div');
-    chips.style.display = 'flex';
-    chips.style.flexWrap = 'wrap';
-    chips.style.gap = '6px';
-    [
-      ['Remove background', 'e-bgremove'],
-      ['Upscale', 'e-upscale'],
-      ['Retouch', 'e-retouch'],
-      ['Drop shadow', 'e-dropshadow'],
-      ['Variation', 'e-genvar'],
-    ].forEach(function (c) {
-      var b = document.createElement('button');
-      b.className = '__be-btn __be-ghost';
-      b.style.padding = '7px 10px';
-      b.style.flex = '0 0 auto';
-      b.textContent = c[0];
-      b.addEventListener('click', function () { applyToken(c[1]); });
-      chips.appendChild(b);
-    });
-    body.appendChild(row('AI transforms', chips));
-
-    // --- Prompt-based transforms ---
-    function promptRow(label, effect, ph) {
-      var inp = document.createElement('input');
-      inp.type = 'text';
-      inp.placeholder = ph;
-      var apply = document.createElement('button');
-      apply.className = '__be-btn';
-      apply.style.padding = '7px 11px';
-      apply.textContent = 'Apply';
-      apply.addEventListener('click', function () {
-        var v = inp.value.trim();
-        if (!v) return;
-        applyToken(ikPromptToken(effect, v));
-        inp.value = '';
-      });
-      var w = document.createElement('div');
-      w.className = '__be-inline';
-      w.appendChild(inp); w.appendChild(apply);
-      return row(label, w);
-    }
-    body.appendChild(promptRow('Replace background', 'changebg', 'e.g. on a sunny beach'));
-    body.appendChild(promptRow('AI edit', 'edit', 'e.g. make the mug red'));
+    body.appendChild(find);
 
     var hint = document.createElement('p');
     hint.className = '__be-hint';
-    hint.textContent = 'Transforms stack on the current image and update the live preview instantly.';
+    hint.textContent = 'Photos come from Unsplash and are hotlinked with photographer credit kept in the image data.';
     body.appendChild(hint);
+    setTimeout(function () { ta.focus(); }, 0);
   }
+
+  // Parent -> iframe result of a builder:findImage request.
+  window.__builderImageResult = function (result) {
+    var pending = pendingImageSearch;
+    pendingImageSearch = null;
+    if (!pending) return;
+    pending.btn.disabled = false;
+    if (!result || result.error) {
+      pending.status.textContent = (result && result.error) || 'No photo found. Try a different description.';
+      return;
+    }
+    var img = pending.img;
+    if (!img.isConnected) return;
+    img.removeAttribute('data-unsplash-pending');
+    img.setAttribute('data-image-prompt', pending.prompt);
+    if (result.width || result.height) {
+      // Re-size for the slot while keeping Unsplash tracking params.
+      img.setAttribute('src', unsplashSize(result.url, result.width, result.height));
+    } else {
+      img.setAttribute('src', result.url);
+    }
+    img.classList.remove('__img-ready');
+    if (window.__decorateImages) window.__decorateImages();
+    pending.status.textContent = 'Photo by ' + (result.photographerName || 'Unsplash') + ' applied.';
+    emitChange();
+    unlock();
+  };
+
+  var pendingImageSearch = null;
 
   // ---------------------------- element actions -----------------------------
   // Re-key any builder ids in a cloned subtree so ids stay unique after a copy.

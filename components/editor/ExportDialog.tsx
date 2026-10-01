@@ -33,6 +33,10 @@ interface ExportDialogProps {
   pages: ExportPage[];
   themeCss: string;
   styleGuide: string | null;
+  /** The project's AI model, so section conversion matches the pages. */
+  model: string;
+  /** Called with the exported ZIP's public URL + filename to open the push flow. */
+  onSendToShopify?: (zipUrl: string, fileName: string) => void;
 }
 
 const STEP_LIST: { id: ExportStepId; label: string }[] = [
@@ -73,6 +77,8 @@ export default function ExportDialog({
   pages,
   themeCss,
   styleGuide,
+  model,
+  onSendToShopify,
 }: ExportDialogProps) {
   const [state, setState] = useState<DialogState>('checking');
   const [existing, setExisting] = useState<ThemeExportRow | null>(null);
@@ -97,6 +103,7 @@ export default function ExportDialog({
         pages,
         themeCss,
         styleGuide,
+        model,
         onProgress: setProgress,
       });
       setResult(res);
@@ -107,7 +114,7 @@ export default function ExportDialog({
     } finally {
       runningRef.current = false;
     }
-  }, [projectId, projectName, pages, themeCss, styleGuide]);
+  }, [projectId, projectName, pages, themeCss, styleGuide, model]);
 
   // On open: reset, then check for an existing export. If one exists, offer the
   // choices; otherwise begin the export immediately.
@@ -230,6 +237,18 @@ export default function ExportDialog({
                     <Download size={17} strokeWidth={2} />
                     Download existing export
                   </button>
+                  {onSendToShopify && existing.download_url?.startsWith('https://') && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onSendToShopify(existing.download_url, existing.file_name);
+                      }}
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e8e2de] bg-white px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#fff8f5]"
+                    >
+                      <Store size={16} strokeWidth={2} className="text-[#35b86b]" />
+                      Send to Shopify store
+                    </button>
+                  )}
                   <button
                     onClick={() => void startExport()}
                     className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e8e2de] bg-white px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#fff8f5]"
@@ -334,6 +353,18 @@ export default function ExportDialog({
                     <Download size={17} strokeWidth={2} />
                     Download ZIP
                   </button>
+                  {onSendToShopify && result.row.download_url?.startsWith('https://') && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onSendToShopify(result.row.download_url, result.fileName);
+                      }}
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e8e2de] bg-white px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#fff8f5]"
+                    >
+                      <Store size={16} strokeWidth={2} className="text-[#35b86b]" />
+                      Send to Shopify store
+                    </button>
+                  )}
                   <button
                     onClick={onClose}
                     className="flex h-10 items-center justify-center rounded-xl px-4 text-sm font-medium text-[#6b7280] transition hover:bg-[#f6f1ee]"

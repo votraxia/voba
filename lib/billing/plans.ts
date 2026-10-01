@@ -2,14 +2,15 @@
  * Subscription plan catalog — the single source of truth for what each plan
  * costs and what it unlocks. Safe to import from both client and server: it
  * contains NO secrets (AGENTS.md §15). Prices are defined inline here and passed
- * straight to Stripe Checkout as `price_data`; we deliberately do NOT use
- * predefined Stripe Price IDs so the plan/interval/amount all live in code.
+ * straight to Porsa's hosted checkout as inline payment data; we deliberately do
+ * NOT maintain provider-side Price objects so the plan/interval/amount all live
+ * in code.
  */
 
 /** Selectable plan identifiers stored in the `subscriptions.plan` column. */
 export type PlanId = 'free' | 'monthly' | 'yearly';
 
-/** Stripe recurring interval, stored in `subscriptions.billing_interval`. */
+/** Recurring interval, stored in `subscriptions.billing_interval`. */
 export type BillingInterval = 'month' | 'year';
 
 /** Project ceiling for the Free plan (AGENTS.md product spec). */
