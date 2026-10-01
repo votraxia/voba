@@ -21,6 +21,7 @@ import GitHubPushDialog from './GitHubPushDialog';
 import ModelPicker from './ModelPicker';
 import ShopifyPushDialog from './ShopifyPushDialog';
 import { usePathname, useSearchParams } from 'next/navigation';
+import ThemeSwitcher from '@/components/theme/ThemeSwitcher';
 import { useSubscription } from '@/components/billing/SubscriptionProvider';
 import UpgradeDialog from '@/components/billing/UpgradeDialog';
 import { exportPagesAsCodeZip } from '@/lib/export/code';
@@ -192,7 +193,7 @@ export default function EditorTopBar({
   }
 
   return (
-    <header className="relative flex h-16 shrink-0 items-center justify-between gap-3 border-b border-[#ece6e2] bg-white px-4">
+    <header className="relative flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-card px-4">
       <div className="flex items-center gap-3">
         <Image
           src="/logo.png"
@@ -202,13 +203,13 @@ export default function EditorTopBar({
           className="shrink-0 rounded-lg"
           priority
         />
-        <span className="hidden text-[15px] font-bold text-[#111827] sm:block">
+        <span className="hidden text-[15px] font-bold text-fg sm:block">
           Shopify Theme Builder
         </span>
         <button
           aria-label={collapsed ? 'Expand chat panel' : 'Collapse chat panel'}
           onClick={onToggleSidebar}
-          className="grid h-8 w-8 place-items-center rounded-lg border border-[#e8e2de] bg-white text-[#4b5563] transition hover:bg-[#fff8f5]"
+          className="grid h-8 w-8 place-items-center rounded-lg border border-line bg-card text-accent-fg-2 transition hover:bg-accent-soft"
         >
           <ChevronLeft
             size={17}
@@ -219,39 +220,40 @@ export default function EditorTopBar({
       </div>
 
       <div className="flex shrink-0 items-center gap-3">
+        <ThemeSwitcher />
         <ModelPicker />
 
         <div className="relative" ref={exportRef}>
           <button
             onClick={() => setMenuOpen((open) => !open)}
             disabled={dialogOpen || busy !== null}
-            className="flex h-11 items-center gap-2 rounded-xl border border-[#e8e2de] bg-white px-4 text-sm font-medium text-[#111827] shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-[#fff8f5] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-11 items-center gap-2 rounded-xl border border-line bg-card px-4 text-sm font-medium text-accent-fg shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
           >
             {busy ? (
               <>
-                <Loader2 size={16} strokeWidth={2} className="animate-spin text-[#ff6747]" />
+                <Loader2 size={16} strokeWidth={2} className="animate-spin text-accent" />
                 {busy === 'png' ? pngStatus || 'Exporting…' : 'Exporting…'}
               </>
             ) : (
               <>
-                <Store size={17} strokeWidth={1.9} className="text-[#35b86b]" />
+                <Store size={17} strokeWidth={1.9} className="text-success" />
                 Export to Shopify
                 <ChevronDown
                   size={16}
                   strokeWidth={2}
-                  className={`text-[#9aa2af] transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+                  className={`text-muted transition-transform ${menuOpen ? 'rotate-180' : ''}`}
                 />
               </>
             )}
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-2xl border border-[#eee7e3] bg-white p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
-              <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#9aa2af]">
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-2xl border border-line bg-card p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+              <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
                 Export options
               </p>
               {!hasExportablePages && (
-                <p className="px-3 pb-2 text-[11px] text-[#b7ada4]">
+                <p className="px-3 pb-2 text-[11px] text-muted">
                   Generate a page first to enable export.
                 </p>
               )}
@@ -264,9 +266,9 @@ export default function EditorTopBar({
                     key={option.id}
                     onClick={option.action}
                     disabled={disabled}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#111827] transition hover:bg-[#fff3ef] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-accent-fg transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <Icon size={17} strokeWidth={1.9} className="text-[#6b7280]" />
+                    <Icon size={17} strokeWidth={1.9} className="text-fg-2" />
                     {option.label}
                   </button>
                 );
@@ -275,7 +277,7 @@ export default function EditorTopBar({
           )}
 
           {exportError && !menuOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-72 rounded-xl border border-[#f6d5cf] bg-[#fdeceb] px-3.5 py-2.5 text-[12px] text-[#c0432f] shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-72 rounded-xl border border-danger-soft bg-danger-soft px-3.5 py-2.5 text-[12px] text-danger shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
               {exportError}
             </div>
           )}
@@ -288,32 +290,32 @@ export default function EditorTopBar({
             disabled={saving || busy !== null}
             aria-label="Version history"
             title={revisions.length > 0 ? 'Version history' : 'No saved versions yet'}
-            className="relative grid h-11 w-11 place-items-center rounded-xl border border-[#e8e2de] bg-white text-[#4b5563] shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-[#fff8f5] disabled:cursor-not-allowed disabled:opacity-60"
+            className="relative grid h-11 w-11 place-items-center rounded-xl border border-line bg-card text-accent-fg-2 shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
           >
             <History size={17} strokeWidth={1.9} />
             {revisions.length > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#ff6747] px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-fg">
                 {Math.min(revisions.length, 30)}
               </span>
             )}
           </button>
 
           {historyOpen && (
-            <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[420px] w-80 overflow-y-auto rounded-2xl border border-[#eee7e3] bg-white p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+            <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[420px] w-80 overflow-y-auto rounded-2xl border border-line bg-card p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
               <div className="flex items-center justify-between px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa2af]">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
                   Version history
                 </p>
                 <button
                   onClick={() => void undo()}
                   disabled={revisions.length === 0 || saving}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-[#ff6747] transition hover:bg-[#fff3ef] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <RotateCcw size={12} strokeWidth={2.2} /> Undo last
                 </button>
               </div>
               {revisions.length === 0 ? (
-                <p className="px-3 pb-3 pt-1 text-xs text-[#9aa2af]">
+                <p className="px-3 pb-3 pt-1 text-xs text-muted">
                   Versions are saved automatically each time the AI changes your build, so you can
                   always go back.
                 </p>
@@ -321,19 +323,19 @@ export default function EditorTopBar({
                 <ul className="space-y-0.5">
                   {revisions.map((revision) => (
                     <li key={revision.id}>
-                      <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 transition hover:bg-[#fff8f5]">
+                      <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 transition hover:bg-accent-soft">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[13px] font-medium text-[#111827]">
+                          <p className="truncate text-[13px] font-medium text-fg">
                             {revision.label || 'Update'}
                           </p>
-                          <p className="text-[11px] text-[#9aa2af]">
+                          <p className="text-[11px] text-muted">
                             {formatRevisionTime(revision.createdAt)}
                           </p>
                         </div>
                         <button
                           onClick={() => void handleRestore(revision.id)}
                           disabled={saving || restoringId !== null}
-                          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-[#ff6747] transition hover:bg-[#fff3ef] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-accent transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {restoringId === revision.id ? (
                             <Loader2 size={13} className="animate-spin" />
@@ -354,7 +356,7 @@ export default function EditorTopBar({
         <button
           onClick={() => void handleSave()}
           disabled={saving || busy !== null}
-          className="flex h-11 items-center gap-2 rounded-xl bg-[#ff6747] px-5 text-sm font-semibold text-white shadow-[0_12px_22px_rgba(255,103,71,0.2)] transition hover:bg-[#f85b3a] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-11 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-fg shadow-[var(--app-shadow-md)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {saving ? (
             <Loader2 size={17} strokeWidth={2} className="animate-spin" />
@@ -369,13 +371,13 @@ export default function EditorTopBar({
 
       {saveError && (
         <div className="pointer-events-none absolute inset-x-0 top-16 z-40 flex justify-center">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-[#f6d5cf] bg-[#fdeceb] px-4 py-2.5 text-[13px] font-medium text-[#c0432f] shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-danger-soft bg-danger-soft px-4 py-2.5 text-[13px] font-medium text-danger shadow-[0_16px_32px_rgba(31,41,55,0.12)]">
             <span>
               Your last change couldn&apos;t be saved. It&apos;s still in the preview — try Save again.
             </span>
             <button
               onClick={() => void handleSave()}
-              className="rounded-lg bg-[#c0432f] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#a83a28]"
+              className="rounded-lg bg-danger px-3 py-1 text-xs font-semibold text-fg transition hover:bg-[#a83a28]"
             >
               Retry
             </button>

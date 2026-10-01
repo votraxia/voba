@@ -27,23 +27,23 @@ const photoCredits = [
 
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-[#eee7e3] bg-[#fffdfc]">
+    <footer className="border-t border-line bg-app">
       <div className="mx-auto grid max-w-[1160px] gap-10 px-6 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-white ring-1 ring-[#eee7e3]">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-card ring-1 ring-line">
               <Image src="/logo.png" alt="" width={24} height={24} className="h-6 w-6 rounded" />
             </span>
-            <span className="text-[15px] font-semibold text-[#111827]">Theme Builder</span>
+            <span className="text-[15px] font-semibold text-fg">Theme Builder</span>
           </Link>
-          <p className="mt-4 max-w-[320px] text-[14px] leading-6 text-[#6b7280]">
+          <p className="mt-4 max-w-[320px] text-[14px] leading-6 text-fg-2">
             Describe a storefront, edit it section by section, and export a Shopify
             theme you can upload as-is.
           </p>
         </div>
 
         <div>
-          <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#9aa2af]">
+          <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-muted">
             Product
           </h2>
           <ul className="mt-4 space-y-2.5">
@@ -51,7 +51,7 @@ export default function SiteFooter() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-[14px] text-[#4b5563] transition hover:text-[#111827]"
+                  className="text-[14px] text-fg-2 transition hover:text-fg"
                 >
                   {link.label}
                 </Link>
@@ -61,12 +61,12 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#9aa2af]">
+          <h2 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-muted">
             Built on
           </h2>
           <ul className="mt-4 space-y-2.5">
             {stack.map((item) => (
-              <li key={item} className="text-[14px] text-[#4b5563]">
+              <li key={item} className="text-[14px] text-fg-2">
                 {item}
               </li>
             ))}
@@ -74,8 +74,8 @@ export default function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-[#f1ebe7]">
-        <div className="mx-auto flex max-w-[1160px] flex-col gap-3 px-6 py-6 text-[13px] text-[#9aa2af] sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-t border-line">
+        <div className="mx-auto flex max-w-[1160px] flex-col gap-3 px-6 py-6 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 AI Shopify Theme Builder</p>
           <p>
             Photography by{' '}
@@ -86,7 +86,7 @@ export default function SiteFooter() {
                   href={credit.href}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="text-[#6b7280] underline decoration-[#e8e2de] underline-offset-2 transition hover:text-[#111827]"
+                  className="text-fg-2 underline decoration-line underline-offset-2 transition hover:text-fg"
                 >
                   {credit.name}
                 </a>

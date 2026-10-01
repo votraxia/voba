@@ -25,7 +25,7 @@ export default function SidebarUser() {
 
   if (loading) {
     return (
-      <div className="mt-auto border-t border-[#ece6e2] px-1 pt-6">
+      <div className="mt-auto border-t border-line px-1 pt-6">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-neutral-100" />
           <div className="flex-1 space-y-1.5">
@@ -39,13 +39,13 @@ export default function SidebarUser() {
 
   if (!user) {
     return (
-      <div className="mt-auto border-t border-[#ece6e2] px-1 pt-6">
-        <p className="mb-3 text-sm leading-6 text-[#6b7280]">
+      <div className="mt-auto border-t border-line px-1 pt-6">
+        <p className="mb-3 text-sm leading-6 text-fg-2">
           Sign in to save your themes and generation history.
         </p>
         <Link
           href="/sign-in"
-          className="grid h-10 place-items-center rounded-xl bg-[#ff6747] text-[15px] font-medium text-white shadow-[0_12px_22px_rgba(255,103,71,0.18)] transition hover:bg-[#f85b3a]"
+          className="grid h-10 place-items-center rounded-xl bg-accent text-[15px] font-medium text-accent-fg shadow-[0_12px_22px_rgba(255,103,71,0.18)] transition hover:bg-accent-hover"
         >
           Sign in
         </Link>
@@ -57,7 +57,7 @@ export default function SidebarUser() {
   const showImage = user.avatarUrl && !imageFailed;
 
   return (
-    <div className="mt-auto border-t border-[#ece6e2] px-1 pt-6">
+    <div className="mt-auto border-t border-line px-1 pt-6">
       <div className="flex items-center gap-3 rounded-xl px-1 py-1">
         {showImage ? (
           // eslint-disable-next-line @next/next/no-img-element -- avatars come from arbitrary OAuth hosts; <img> avoids remotePatterns config.
@@ -71,16 +71,16 @@ export default function SidebarUser() {
             className="h-10 w-10 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fff3ef] text-sm font-semibold text-[#f05a32]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
             {getInitials(user.name, user.email)}
           </span>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-[#111827]">
+          <p className="truncate text-sm font-semibold text-fg">
             {displayName}
           </p>
-          <p className="truncate text-xs text-[#6b7280]">{user.email}</p>
+          <p className="truncate text-xs text-fg-2">{user.email}</p>
         </div>
 
         <button
@@ -88,7 +88,7 @@ export default function SidebarUser() {
           onClick={() => void signOut()}
           aria-label="Sign out"
           title="Sign out"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[#6b7280] transition-colors hover:bg-[#fff3ef] hover:text-[#f05a32]"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-accent-fg-2 transition-colors hover:bg-accent-soft hover:text-accent"
         >
           <LogOut size={16} strokeWidth={1.8} />
         </button>

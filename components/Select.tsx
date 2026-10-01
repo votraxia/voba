@@ -28,7 +28,7 @@ export default function Select({
         </label>
       )}
       <select
-        className={`px-4 py-2 border-2 rounded-base text-base font-normal bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:bg-neutral-50 disabled:text-neutral-300 ${
+        className={`px-4 py-2 border-2 rounded-base text-base font-normal bg-card transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:bg-neutral-50 disabled:text-neutral-300 ${
           error
             ? 'border-error text-error'
             : 'border-neutral-200 text-neutral-900 hover:border-neutral-300'

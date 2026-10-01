@@ -4,10 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components';
 import { Settings } from 'lucide-react';
+import ThemeSwitcher from '@/components/theme/ThemeSwitcher';
 
 export default function Header() {
   return (
-    <header className="fixed top-0 right-0 left-0 border-b border-neutral-200 bg-white z-40">
+    <header className="fixed top-0 right-0 left-0 border-b border-neutral-200 bg-card z-40">
       <div className="flex items-center justify-between px-6 h-16">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
@@ -26,6 +27,7 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          <ThemeSwitcher />
           <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
             <Settings size={20} className="text-neutral-600" />
           </button>

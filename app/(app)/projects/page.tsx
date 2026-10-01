@@ -62,18 +62,18 @@ export default function ProjectsPage() {
   }, [user, authLoading]);
 
   return (
-    <div className="min-h-screen bg-[#fffdfc] px-8 py-10">
+    <div className="min-h-screen bg-app px-8 py-10">
       <div className="mx-auto max-w-[1120px]">
         <header className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-[28px] font-bold leading-tight text-[#111827]">Your projects</h1>
-            <p className="mt-1 text-sm text-[#6b7280]">
+            <h1 className="text-[28px] font-bold leading-tight text-fg">Your projects</h1>
+            <p className="mt-1 text-sm text-fg-2">
               Every storefront you&apos;ve generated, ready to reopen and edit.
             </p>
           </div>
           <Link
             href="/dashboard"
-            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white shadow-[0_12px_22px_rgba(255,103,71,0.2)] transition hover:bg-[#f85b3a]"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg shadow-[var(--app-shadow-md)] transition hover:bg-accent-hover"
           >
             <Plus size={17} strokeWidth={2.2} />
             New project
@@ -81,9 +81,9 @@ export default function ProjectsPage() {
         </header>
 
         {state === 'loading' && (
-          <div className="grid place-items-center py-28 text-[#6b7280]">
+          <div className="grid place-items-center py-28 text-fg-2">
             <div className="flex items-center gap-3 text-sm font-medium">
-              <Loader2 size={18} className="animate-spin text-[#ff6747]" />
+              <Loader2 size={18} className="animate-spin text-accent" />
               Loading your projects…
             </div>
           </div>
@@ -91,27 +91,27 @@ export default function ProjectsPage() {
 
         {state === 'error' && (
           <div className="grid place-items-center py-28 text-center">
-            <p className="text-sm font-medium text-[#ef4444]">
+            <p className="text-sm font-medium text-danger">
               We couldn&apos;t load your projects. Please refresh and try again.
             </p>
           </div>
         )}
 
         {state === 'ready' && projects.length === 0 && (
-          <div className="grid place-items-center rounded-2xl border border-dashed border-[#e7e2df] bg-white py-24 text-center">
+          <div className="grid place-items-center rounded-2xl border border-dashed border-line bg-card py-24 text-center">
             <div className="flex flex-col items-center gap-4">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#fff3ef] text-[#f05a32]">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent">
                 <FolderOpen size={26} strokeWidth={1.8} />
               </span>
               <div>
-                <h2 className="text-base font-bold text-[#111827]">No projects yet</h2>
-                <p className="mt-1 text-sm text-[#6b7280]">
+                <h2 className="text-base font-bold text-fg">No projects yet</h2>
+                <p className="mt-1 text-sm text-fg-2">
                   Describe a Shopify page from the home screen to create your first one.
                 </p>
               </div>
               <Link
                 href="/dashboard"
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
               >
                 <Plus size={17} strokeWidth={2.2} />
                 Create a project
@@ -197,9 +197,9 @@ function ProjectCard({
 
   return (
     <div
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#eee7e3] bg-white shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-[#ffd4c7] hover:shadow-[0_16px_32px_rgba(31,41,55,0.08)]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[0_16px_32px_rgba(31,41,55,0.08)]"
     >
-      <Link href={`/editor/${project.id}`} className="relative block aspect-[16/10] w-full overflow-hidden bg-[#f6f2ef]">
+      <Link href={`/editor/${project.id}`} className="relative block aspect-[16/10] w-full overflow-hidden bg-elevated">
         {project.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- remote InsForge Storage URL, not optimizable at build time.
           <img
@@ -209,7 +209,7 @@ function ProjectCard({
             loading="lazy"
           />
         ) : (
-          <div className="grid h-full w-full place-items-center text-[#c3bcb6]">
+          <div className="grid h-full w-full place-items-center text-muted">
             <div className="flex flex-col items-center gap-2">
               <ImageOff size={26} strokeWidth={1.6} />
               <span className="text-xs font-medium">Preview generating…</span>
@@ -226,19 +226,19 @@ function ProjectCard({
             e.preventDefault();
             setMenuOpen((v) => !v);
           }}
-          className="grid h-8 w-8 place-items-center rounded-lg border border-[#eee7e3] bg-white/95 text-[#6b7280] opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 hover:text-[#111827] focus:opacity-100"
+          className="grid h-8 w-8 place-items-center rounded-lg border border-line bg-elevated/95 text-fg-2 opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 hover:text-fg focus:opacity-100"
         >
           <MoreVertical size={15} strokeWidth={2} />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 top-9 w-44 overflow-hidden rounded-xl border border-[#eee7e3] bg-white p-1 shadow-[0_18px_40px_rgba(31,41,55,0.14)]">
+          <div className="absolute right-0 top-9 w-44 overflow-hidden rounded-xl border border-line bg-card p-1 shadow-[0_18px_40px_rgba(31,41,55,0.14)]">
             <button
               onClick={() => {
                 setMenuOpen(false);
                 setNameDraft(project.name);
                 setRenaming(true);
               }}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[#111827] transition hover:bg-[#fff3ef]"
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-accent-fg transition hover:bg-accent-soft"
             >
               <Pencil size={14} strokeWidth={2} /> Rename
             </button>
@@ -247,7 +247,7 @@ function ProjectCard({
                 setMenuOpen(false);
                 setConfirmDelete(true);
               }}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[#b4432a] transition hover:bg-[#fff4f1]"
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-danger transition hover:bg-danger-soft"
             >
               <Trash2 size={14} strokeWidth={2} /> Delete
             </button>
@@ -266,39 +266,39 @@ function ProjectCard({
               if (e.key === 'Enter') void submitRename();
               if (e.key === 'Escape') setRenaming(false);
             }}
-            className="w-full rounded-lg border border-[#ffd4c7] bg-white px-2 py-1 text-[15px] font-bold text-[#111827] outline-none focus:border-[#ff6747]"
+            className="w-full rounded-lg border border-accent-line bg-card px-2 py-1 text-[15px] font-bold text-fg outline-none focus:border-accent"
           />
         ) : (
           <Link href={`/editor/${project.id}`}>
-            <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[#111827]">
+            <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-fg">
               {project.name}
             </h3>
           </Link>
         )}
-        <p className="mt-auto pt-2 text-xs font-medium text-[#9aa2af]">
+        <p className="mt-auto pt-2 text-xs font-medium text-muted">
           Created {formatCreatedAt(project.created_at)}
         </p>
       </div>
 
       {confirmDelete && (
-        <div className="absolute inset-0 z-20 grid place-items-center bg-white/95 p-6 text-center">
+        <div className="absolute inset-0 z-20 grid place-items-center bg-elevated/95 p-6 text-center">
           <div>
-            <h4 className="text-sm font-bold text-[#111827]">Delete “{project.name}”?</h4>
-            <p className="mt-1 text-xs text-[#6b7280]">
+            <h4 className="text-sm font-bold text-fg">Delete “{project.name}”?</h4>
+            <p className="mt-1 text-xs text-fg-2">
               This permanently removes the project, its pages, and its exports.
             </p>
             <div className="mt-4 flex justify-center gap-2">
               <button
                 onClick={() => setConfirmDelete(false)}
                 disabled={deleting}
-                className="h-9 rounded-lg border border-[#e8e2de] bg-white px-4 text-xs font-semibold text-[#374151] transition hover:bg-[#faf8f6] disabled:opacity-50"
+                className="h-9 rounded-lg border border-line bg-card px-4 text-xs font-semibold text-fg-2 transition hover:bg-elevated disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => void submitDelete()}
                 disabled={deleting}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#dc2626] px-4 text-xs font-semibold text-white transition hover:bg-[#b91c1c] disabled:opacity-50"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-danger px-4 text-xs font-semibold text-fg transition hover:bg-danger disabled:opacity-50"
               >
                 {deleting && <Loader2 size={13} className="animate-spin" />}
                 Delete

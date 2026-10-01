@@ -78,7 +78,7 @@ function SignInForm() {
         />
 
         {error && (
-          <p className="rounded-base bg-[#fef2f2] px-3 py-2 text-sm text-error">{error}</p>
+          <p className="rounded-base bg-danger-soft px-3 py-2 text-sm text-error">{error}</p>
         )}
 
         <Button type="submit" size="lg" disabled={loading} className="w-full">

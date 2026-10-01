@@ -7,6 +7,7 @@ import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Tag from '@/components/Tag';
 import Alert from '@/components/Alert';
+import TokenPalette from '@/components/theme/TokenPalette';
 
 export default function DesignSystemPage() {
   const [tags, setTags] = useState(['Landing', 'New', 'Premium']);
@@ -18,7 +19,7 @@ export default function DesignSystemPage() {
         {/* Header */}
         <div className="mb-16">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-primary-600 rounded-base flex items-center justify-center text-white text-xl font-bold">
+            <div className="w-12 h-12 bg-primary-600 rounded-base flex items-center justify-center text-fg text-xl font-bold">
               ⬡
             </div>
             <div>
@@ -50,67 +51,14 @@ export default function DesignSystemPage() {
           </div>
         </section>
 
-        {/* Colors */}
+        {/* Colors — reads the live tokens, so it repaints with the theme */}
         <section className="mb-16">
-          <h2 className="text-h2 mb-6 text-neutral-900">Colors</h2>
-
-          <div className="mb-8">
-            <h3 className="text-h4 mb-4 text-neutral-900">Primary</h3>
-            <div className="flex gap-4 flex-wrap">
-              {[
-                { name: '600', color: '#FF5840' },
-                { name: '500', color: '#FF8966' },
-                { name: '300', color: '#FFB3A1' },
-                { name: '200', color: '#FFC9B8' },
-                { name: '100', color: '#FFE5DE' },
-              ].map((c) => (
-                <div key={c.name} className="text-center">
-                  <div className="w-16 h-16 rounded-base shadow-sm mb-2" style={{ backgroundColor: c.color }} />
-                  <p className="text-xs text-neutral-600 font-mono">{c.name}</p>
-                  <p className="text-xs text-neutral-500 font-mono">{c.color}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-h4 mb-4 text-neutral-900">Neutrals</h3>
-            <div className="flex gap-4 flex-wrap">
-              {[
-                { name: '900', color: '#0F1724' },
-                { name: '700', color: '#2C3E54' },
-                { name: '500', color: '#6B7C96' },
-                { name: '300', color: '#B0C4D9' },
-                { name: '100', color: '#DCE5ED' },
-                { name: '50', color: '#F4F9FF' },
-              ].map((c) => (
-                <div key={c.name} className="text-center">
-                  <div className="w-16 h-16 rounded-base shadow-sm mb-2 border border-neutral-200" style={{ backgroundColor: c.color }} />
-                  <p className="text-xs text-neutral-600 font-mono">{c.name}</p>
-                  <p className="text-xs text-neutral-500 font-mono">{c.color}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-h4 mb-4 text-neutral-900">Semantic</h3>
-            <div className="flex gap-4 flex-wrap">
-              {[
-                { name: 'Success', color: '#22CC58' },
-                { name: 'Warning', color: '#F9B838' },
-                { name: 'Error', color: '#EF4444' },
-                { name: 'Info', color: '#2882F6' },
-                { name: 'Purple', color: '#885CF8' },
-              ].map((c) => (
-                <div key={c.name} className="text-center">
-                  <div className="w-16 h-16 rounded-base shadow-sm mb-2" style={{ backgroundColor: c.color }} />
-                  <p className="text-xs text-neutral-600 font-mono">{c.name}</p>
-                  <p className="text-xs text-neutral-500 font-mono">{c.color}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <h2 className="text-h2 mb-2 text-fg">Colors</h2>
+          <p className="mb-6 text-sm text-fg-2">
+            Every surface in the app uses these semantic tokens. Switch theme to
+            confirm a token follows the palette.
+          </p>
+          <TokenPalette />
         </section>
 
         {/* Typography */}
@@ -280,7 +228,7 @@ export default function DesignSystemPage() {
                 {['xs', 'sm', 'md', 'lg', 'xl'].map((level) => (
                   <div
                     key={level}
-                    className={`p-4 bg-white rounded-base shadow-${level} text-sm text-neutral-600`}
+                    className={`p-4 bg-card rounded-base shadow-${level} text-sm text-neutral-600`}
                   >
                     shadow-{level}
                   </div>

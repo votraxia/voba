@@ -1,68 +1,190 @@
 @import "tailwindcss";
 
-:root {
-  /* Primary Colors */
-  --color-primary-600: #FF5840;
-  --color-primary-500: #FF8966;
-  --color-primary-300: #FFB3A1;
-  --color-primary-200: #FFC9B8;
-  --color-primary-100: #FFE5DE;
+/**
+ * Design tokens.
+ *
+ * Every colour in the product is expressed as a semantic token (surface, line,
+ * fg, accent, …) rather than a literal hex. The three themes below only swap
+ * the token VALUES, so a component written once renders correctly in all of
+ * them — that is what makes "add a theme" a CSS change instead of a refactor.
+ *
+ * Themes are selected by `data-theme` on <html>, written by ThemeProvider
+ * before paint so there is no flash of the wrong palette.
+ */
 
-  /* Neutral Colors */
-  --color-neutral-900: #0F1724;
-  --color-neutral-700: #2C3E54;
-  --color-neutral-500: #6B7C96;
-  --color-neutral-300: #B0C4D9;
-  --color-neutral-100: #DCE5ED;
-  --color-neutral-50: #F4F9FF;
+:root,
+[data-theme="obsidian"] {
+  color-scheme: dark;
 
-  /* Semantic Colors */
-  --color-success: #22CC58;
-  --color-warning: #F9B838;
-  --color-error: #EF4444;
-  --color-info: #2882F6;
-  --color-purple: #885CF8;
+  /* Surfaces — a warm near-black, layered by elevation */
+  --app-bg: #0d0f0e;
+  --app-surface: #151816;
+  --app-card: #1c201d;
+  --app-elevated: #232724;
+  --app-line: #292d2a;
+  --app-line-strong: #383d39;
 
-  /* Background & Foreground */
-  --background: #FFFFFF;
-  --foreground: #0F1724;
+  /* Text */
+  --app-fg: #f4f2ea;
+  --app-fg-2: #aaa69f;
+  --app-muted: #6b6f66;
+  --app-inverse: #0d0f0e;
+
+  /* Accent — the signature lime */
+  --app-accent: #c7f36b;
+  --app-accent-hover: #d6ff82;
+  --app-accent-fg: #14210a;
+  --app-accent-soft: rgba(199, 243, 107, 0.12);
+  --app-accent-line: rgba(199, 243, 107, 0.32);
+
+  /* Status */
+  --app-success: #3ddc84;
+  --app-success-soft: rgba(61, 220, 132, 0.12);
+  --app-warning: #f59e0b;
+  --app-warning-soft: rgba(245, 158, 11, 0.12);
+  --app-danger: #ef4444;
+  --app-danger-soft: rgba(239, 68, 68, 0.12);
+  --app-info: #60a5fa;
+  --app-info-soft: rgba(96, 165, 250, 0.12);
+
+  /* Shadows read better lifted off a dark surface */
+  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --app-shadow-lg: 0 28px 60px rgba(0, 0, 0, 0.55);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #F4F9FF;
-  }
+[data-theme="porcelain"] {
+  color-scheme: light;
+
+  /* Warm off-white, not pure white — reads as paper rather than screen */
+  --app-bg: #f5f3ee;
+  --app-surface: #ffffff;
+  --app-card: #ffffff;
+  --app-elevated: #faf8f4;
+  --app-line: #e6e1d7;
+  --app-line-strong: #d3ccbe;
+
+  --app-fg: #1a1a18;
+  --app-fg-2: #5d5a52;
+  --app-muted: #8e897e;
+  --app-inverse: #ffffff;
+
+  /* The accent darkens on a light surface to stay legible as text */
+  --app-accent: #5f8f12;
+  --app-accent-hover: #4a7409;
+  --app-accent-fg: #ffffff;
+  --app-accent-soft: rgba(95, 143, 18, 0.1);
+  --app-accent-line: rgba(95, 143, 18, 0.3);
+
+  --app-success: #17864a;
+  --app-success-soft: rgba(23, 134, 74, 0.1);
+  --app-warning: #a86400;
+  --app-warning-soft: rgba(168, 100, 0, 0.1);
+  --app-danger: #c62828;
+  --app-danger-soft: rgba(198, 40, 40, 0.1);
+  --app-info: #1565c0;
+  --app-info-soft: rgba(21, 101, 192, 0.1);
+
+  --app-shadow-sm: 0 1px 2px rgba(26, 26, 24, 0.06);
+  --app-shadow-md: 0 8px 24px rgba(26, 26, 24, 0.08);
+  --app-shadow-lg: 0 28px 60px rgba(26, 26, 24, 0.12);
 }
 
+[data-theme="cobalt"] {
+  color-scheme: dark;
+
+  --app-bg: #0a1220;
+  --app-surface: #101b2e;
+  --app-card: #16243c;
+  --app-elevated: #1d2e4a;
+  --app-line: #22334f;
+  --app-line-strong: #2f456b;
+  --app-fg: #eaf0fa;
+  --app-fg-2: #9db0cc;
+  --app-muted: #6a7f9e;
+  --app-inverse: #0a1220;
+
+  /* Cobalt swaps the warm lime for an electric amber — bolder, techier */
+  --app-accent: #ff8a3d;
+  --app-accent-hover: #ffa45c;
+  --app-accent-fg: #2a1200;
+  --app-accent-soft: rgba(255, 138, 61, 0.14);
+  --app-accent-line: rgba(255, 138, 61, 0.34);
+
+  --app-success: #34d399;
+  --app-success-soft: rgba(52, 211, 153, 0.12);
+  --app-warning: #fbbf24;
+  --app-warning-soft: rgba(251, 191, 36, 0.12);
+  --app-danger: #f87171;
+  --app-danger-soft: rgba(248, 113, 113, 0.12);
+  --app-info: #60a5fa;
+  --app-info-soft: rgba(96, 165, 250, 0.12);
+
+  --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --app-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --app-shadow-lg: 0 28px 60px rgba(0, 0, 0, 0.65);
+}
+
+/* Expose the tokens to Tailwind so `bg-surface`, `text-fg`, `border-line` … work. */
 @theme inline {
-  /* Colors */
-  --color-primary: {
-    600: var(--color-primary-600);
-    500: var(--color-primary-500);
-    300: var(--color-primary-300);
-    200: var(--color-primary-200);
-    100: var(--color-primary-100);
-  };
-  --color-neutral: {
-    900: var(--color-neutral-900);
-    700: var(--color-neutral-700);
-    500: var(--color-neutral-500);
-    300: var(--color-neutral-300);
-    100: var(--color-neutral-100);
-    50: var(--color-neutral-50);
-  };
-  --color-success: var(--color-success);
-  --color-warning: var(--color-warning);
-  --color-error: var(--color-error);
-  --color-info: var(--color-info);
-  --color-purple: var(--color-purple);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-app: var(--app-bg);
+  --color-surface: var(--app-surface);
+  --color-card: var(--app-card);
+  --color-elevated: var(--app-elevated);
+  --color-line: var(--app-line);
+  --color-line-strong: var(--app-line-strong);
+
+  --color-fg: var(--app-fg);
+  --color-fg-2: var(--app-fg-2);
+  --color-muted: var(--app-muted);
+  --color-inverse: var(--app-inverse);
+
+  --color-accent: var(--app-accent);
+  --color-accent-hover: var(--app-accent-hover);
+  --color-accent-fg: var(--app-accent-fg);
+  --color-accent-soft: var(--app-accent-soft);
+  --color-accent-line: var(--app-accent-line);
+
+  --color-success: var(--app-success);
+  --color-success-soft: var(--app-success-soft);
+  --color-warning: var(--app-warning);
+  --color-warning-soft: var(--app-warning-soft);
+  --color-danger: var(--app-danger);
+  --color-danger-soft: var(--app-danger-soft);
+  --color-info: var(--app-info);
+  --color-info-soft: var(--app-info-soft);
+
+  /* Legacy primary ramp, re-pointed at the accent so existing utilities follow
+     the active theme instead of staying coral. */
+  --color-primary-600: var(--app-accent-hover);
+  --color-primary-500: var(--app-accent);
+  --color-primary-300: var(--app-accent-line);
+  --color-primary-200: var(--app-accent-line);
+  --color-primary-100: var(--app-accent-soft);
+  --color-primary-700: var(--app-accent-hover);
+
+  /* Legacy neutral ramp, aliased onto the semantic tokens. These class names
+     still appear across the older UI components; mapping them here keeps that
+     markup themed instead of silently losing its colour. */
+  --color-neutral-900: var(--app-fg);
+  --color-neutral-700: var(--app-fg-2);
+  --color-neutral-600: var(--app-fg-2);
+  --color-neutral-500: var(--app-muted);
+  --color-neutral-400: var(--app-muted);
+  --color-neutral-300: var(--app-line-strong);
+  --color-neutral-200: var(--app-line);
+  --color-neutral-100: var(--app-elevated);
+  --color-neutral-50: var(--app-bg);
+
+  --color-success: var(--app-success);
+  --color-warning: var(--app-warning);
+  --color-error: var(--app-danger);
+  --color-info: var(--app-info);
+  --color-purple: var(--app-accent);
 
   /* Typography */
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -84,13 +206,6 @@
   --radius-lg: 20px;
   --radius-full: 999px;
 
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 32px 64px rgba(0, 0, 0, 0.1);
-
   /* Font Sizes */
   --text-xs: 12px;
   --text-sm: 14px;
@@ -101,7 +216,6 @@
   --text-3xl: 28px;
   --text-4xl: 36px;
 
-  /* Line Heights */
   --leading-xs: 1.33;
   --leading-sm: 1.43;
   --leading-base: 1.5;
@@ -109,8 +223,10 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--app-bg);
+  color: var(--app-fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Typography Utility Classes */
@@ -140,4 +256,15 @@ body {
 
 .text-body-sm {
   @apply text-xs font-normal leading-4;
+}
+
+/*
+ * Native form controls (select dropdowns, date pickers) are painted by the OS,
+ * so they don't inherit the palette. This keeps them legible in every theme.
+ */
+@layer base {
+  select option {
+    background-color: var(--app-surface);
+    color: var(--app-fg);
+  }
 }

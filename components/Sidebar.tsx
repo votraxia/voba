@@ -17,7 +17,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-[#e7e2df] bg-white px-5 py-8">
+    <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-line bg-card px-5 py-8">
       <Link href="/dashboard" className="mb-9 flex items-center gap-3 px-1">
         <Image
           src="/logo.png"
@@ -28,8 +28,8 @@ export default function Sidebar() {
           priority
         />
         <div className="leading-tight">
-          <p className="text-base font-bold text-[#111827]">Shopify</p>
-          <p className="text-base font-bold text-[#111827]">Theme Builder</p>
+          <p className="text-base font-bold text-fg">Shopify</p>
+          <p className="text-base font-bold text-fg">Theme Builder</p>
         </div>
       </Link>
 
@@ -41,11 +41,11 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors ${isActive
-                ? 'bg-[#fff3ef] text-[#f05a32]'
-                : 'text-[#1f2937] hover:bg-[#fff8f5]'
+                ? 'bg-accent-soft text-accent'
+                : 'text-[#1f2937] hover:bg-accent-soft'
                 }`}
             >
-              <span className={`grid h-7 w-7 place-items-center rounded-lg ${isActive ? 'bg-white/60' : 'bg-neutral-50'}`}>
+              <span className={`grid h-7 w-7 place-items-center rounded-lg ${isActive ? 'bg-elevated/60' : 'bg-neutral-50'}`}>
                 <Icon size={18} strokeWidth={1.8} />
               </span>
               <span className="font-medium">{label}</span>

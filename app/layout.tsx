@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components";
 import { SubscriptionProvider } from "@/components/billing/SubscriptionProvider";
+import { ThemeProvider, themeBootScript } from "@/components/theme/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,14 +28,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // `suppressHydrationWarning` is required: the inline boot script below sets
+    // data-theme before React hydrates, so the server and client markup differ
+    // by design.
     <html
       lang="en"
+      suppressHydrationWarning
+      data-theme="obsidian"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-50 text-neutral-900">
-        <AuthProvider>
-          <SubscriptionProvider>{children}</SubscriptionProvider>
-        </AuthProvider>
+      <head>
+        {/* Applies the saved theme before first paint (no flash of the default). */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-app text-fg">
+        <ThemeProvider>
+          <AuthProvider>
+            <SubscriptionProvider>{children}</SubscriptionProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

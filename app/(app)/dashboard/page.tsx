@@ -80,13 +80,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fffdfc] px-8 py-12">
+    <div className="min-h-screen bg-app px-8 py-12">
       <div className="mx-auto w-full max-w-[860px]">
         <header className="mb-8">
-          <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.02em] text-[#111827]">
+          <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.02em] text-fg">
             Start a new Shopify theme
           </h1>
-          <p className="mt-2 text-[15px] leading-6 text-[#6b7280]">
+          <p className="mt-2 text-[15px] leading-6 text-fg-2">
             Describe the storefront you want. You can refine every section, image, and
             label inside the editor.
           </p>
@@ -97,7 +97,7 @@ export default function DashboardPage() {
             event.preventDefault();
             void startProject(prompt);
           }}
-          className="rounded-2xl border border-[#e8e2de] bg-white p-4 shadow-[0_18px_40px_rgba(31,41,55,0.07)]"
+          className="rounded-2xl border border-line bg-card p-4 shadow-[0_18px_40px_rgba(31,41,55,0.07)]"
         >
           <textarea
             ref={promptRef}
@@ -112,10 +112,10 @@ export default function DashboardPage() {
               }
             }}
             disabled={submitting}
-            className="h-[92px] w-full resize-none border-0 bg-transparent px-2 py-2 text-[15px] leading-6 text-[#111827] outline-none placeholder:text-[#7b8492] disabled:opacity-60"
+            className="h-[92px] w-full resize-none border-0 bg-transparent px-2 py-2 text-[15px] leading-6 text-fg outline-none placeholder:text-fg-2 disabled:opacity-60"
           />
           <div className="flex items-end justify-between gap-4">
-            <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#ffe2dc] bg-[#fff8f5] px-3 text-xs font-medium text-[#c0432f]">
+            <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-accent-line bg-accent-soft px-3 text-xs font-medium text-danger">
               <Sparkles size={14} strokeWidth={2} />
               Pages, sections, and Liquid schema generated together
             </span>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
               type="submit"
               aria-label="Generate the storefront"
               disabled={submitting || !prompt.trim()}
-              className="grid h-11 w-11 place-items-center rounded-xl bg-[#ff6747] text-white shadow-[0_12px_22px_rgba(255,103,71,0.2)] transition hover:bg-[#f85b3a] disabled:cursor-not-allowed disabled:opacity-50"
+              className="grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-fg shadow-[var(--app-shadow-md)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? (
                 <Loader2 size={20} strokeWidth={2.2} className="animate-spin" />
@@ -135,11 +135,11 @@ export default function DashboardPage() {
         </form>
 
         {error && (
-          <p className="mt-3 text-sm font-medium text-[#ef4444]">{error}</p>
+          <p className="mt-3 text-sm font-medium text-danger">{error}</p>
         )}
 
         <div className="mb-6 mt-8">
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[#9aa2af]">
+          <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-muted">
             Or start from a page
           </h2>
         </div>
@@ -153,22 +153,22 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => applySuggestion(point.prompt)}
                 disabled={submitting}
-                className="group flex min-h-[100px] items-center justify-between gap-4 rounded-2xl border border-[#eee7e3] bg-white p-4 text-left shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:border-[#ffd4c7] hover:shadow-[0_16px_32px_rgba(31,41,55,0.06)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group flex min-h-[100px] items-center justify-between gap-4 rounded-2xl border border-line bg-card p-4 text-left shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:border-accent-line hover:shadow-[0_16px_32px_rgba(31,41,55,0.06)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <div className="flex items-center gap-4">
                   <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-xl ${point.colour}`}>
                     <Icon size={24} strokeWidth={1.8} />
                   </span>
                   <span>
-                    <span className="block text-[15px] font-bold leading-6 text-[#111827]">
+                    <span className="block text-[15px] font-bold leading-6 text-fg">
                       {point.title}
                     </span>
-                    <span className="mt-1 block text-[13px] leading-5 text-[#5f6673]">
+                    <span className="mt-1 block text-[13px] leading-5 text-fg-2">
                       {point.desc}
                     </span>
                   </span>
                 </div>
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#eee7e3] text-[#111827] transition group-hover:translate-x-1 group-hover:border-[#ffb8a6] group-hover:text-[#ff6747]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-fg transition group-hover:translate-x-1 group-hover:border-[#ffb8a6] group-hover:text-accent">
                   <ArrowRight size={19} strokeWidth={1.8} />
                 </span>
               </button>
@@ -178,20 +178,20 @@ export default function DashboardPage() {
 
         <Link
           href="/projects"
-          className="mt-8 flex items-center justify-between gap-4 rounded-2xl border border-[#efe9e5] bg-[#fff8f5] px-6 py-5 transition hover:border-[#ffd4c7]"
+          className="mt-8 flex items-center justify-between gap-4 rounded-2xl border border-line bg-accent-soft px-6 py-5 transition hover:border-accent-line"
         >
           <span className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-[#f05a32]">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-card text-accent">
               <FolderOpen size={20} strokeWidth={1.9} />
             </span>
             <span>
-              <span className="block text-[15px] font-bold text-[#111827]">Your projects</span>
-              <span className="mt-0.5 block text-[13px] text-[#6b7280]">
+              <span className="block text-[15px] font-bold text-fg">Your projects</span>
+              <span className="mt-0.5 block text-[13px] text-fg-2">
                 Reopen a storefront, restore a revision, or export its theme.
               </span>
             </span>
           </span>
-          <ArrowRight size={18} strokeWidth={2} className="shrink-0 text-[#f05a32]" />
+          <ArrowRight size={18} strokeWidth={2} className="shrink-0 text-accent" />
         </Link>
       </div>
 

@@ -17,14 +17,14 @@ export default function ClosingCtaActions() {
       <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Link
           href="/sign-up"
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff6747] px-7 text-[15px] font-semibold text-white shadow-[0_18px_36px_rgba(255,103,71,0.32)] transition hover:bg-[#f85b3a] sm:w-auto"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[15px] font-semibold text-accent-fg shadow-[0_18px_36px_rgba(255,103,71,0.32)] transition hover:bg-accent-hover sm:w-auto"
         >
           Create free account
           <ArrowRight size={18} strokeWidth={2.2} />
         </Link>
         <Link
           href="/sign-in"
-          className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/20 px-7 text-[15px] font-semibold text-white/85 transition hover:border-white/40 hover:bg-white/5 sm:w-auto"
+          className="inline-flex h-12 w-full items-center justify-center rounded-full border border-line px-7 text-[15px] font-semibold text-fg/85 transition hover:border-line hover:bg-elevated/5 sm:w-auto"
         >
           Log in
         </Link>
@@ -36,14 +36,14 @@ export default function ClosingCtaActions() {
     <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
       <Link
         href="/dashboard"
-        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#ff6747] px-7 text-[15px] font-semibold text-white shadow-[0_18px_36px_rgba(255,103,71,0.32)] transition hover:bg-[#f85b3a] sm:w-auto"
+        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent px-7 text-[15px] font-semibold text-accent-fg shadow-[0_18px_36px_rgba(255,103,71,0.32)] transition hover:bg-accent-hover sm:w-auto"
       >
         Open dashboard
         <ArrowRight size={18} strokeWidth={2.2} />
       </Link>
       <a
         href="#how-it-works"
-        className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/20 px-7 text-[15px] font-semibold text-white/85 transition hover:border-white/40 hover:bg-white/5 sm:w-auto"
+        className="inline-flex h-12 w-full items-center justify-center rounded-full border border-line px-7 text-[15px] font-semibold text-fg/85 transition hover:border-line hover:bg-elevated/5 sm:w-auto"
       >
         See how it works
       </a>

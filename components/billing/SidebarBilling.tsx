@@ -47,7 +47,7 @@ export default function SidebarBilling() {
 
   if (loading && !entitlement) {
     return (
-      <div className="mt-6 rounded-2xl border border-[#efe9e5] bg-[#fffdfc] p-4">
+      <div className="mt-6 rounded-2xl border border-line bg-app p-4">
         <div className="h-3 w-20 animate-pulse rounded bg-neutral-100" />
         <div className="mt-3 h-2 w-full animate-pulse rounded-full bg-neutral-100" />
       </div>
@@ -76,48 +76,48 @@ export default function SidebarBilling() {
   return (
     <div className="mt-6" ref={menuRef}>
       {isPaid ? (
-        <div className="relative rounded-2xl border border-[#ffe0b8] bg-gradient-to-br from-[#fff7ec] to-[#fff1e3] p-4">
+        <div className="relative rounded-2xl border border-warning-soft bg-gradient-to-br from-[#fff7ec] to-[#fff1e3] p-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-[#f59b14] shadow-sm">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-card text-warning shadow-sm">
               <Crown size={18} strokeWidth={1.9} />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-[#111827]">Unlimited Projects</p>
-              <p className="text-xs font-medium text-[#a15c12]">Pro Plan</p>
+              <p className="text-sm font-bold text-fg">Unlimited Projects</p>
+              <p className="text-xs font-medium text-warning">Pro Plan</p>
             </div>
             <button
               type="button"
               aria-label="Billing menu"
               onClick={() => setMenuOpen((o) => !o)}
-              className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-[#a15c12] transition hover:bg-white/60"
+              className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-warning transition hover:bg-elevated/60"
             >
               <ChevronsUpDown size={16} strokeWidth={2} />
             </button>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#efe9e5] bg-[#fffdfc] p-4">
+        <div className="rounded-2xl border border-line bg-app p-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-[#111827]">Projects</p>
+            <p className="text-sm font-semibold text-fg">Projects</p>
             <button
               type="button"
               aria-label="Billing menu"
               onClick={() => setMenuOpen((o) => !o)}
-              className="grid h-7 w-7 place-items-center rounded-lg text-[#9aa2af] transition hover:bg-[#f6f2ef]"
+              className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-elevated"
             >
               <ChevronsUpDown size={15} strokeWidth={2} />
             </button>
           </div>
-          <p className="mt-0.5 text-xs text-[#6b7280]">
+          <p className="mt-0.5 text-xs text-fg-2">
             {projectCount} of {maxProjects} used
           </p>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#f0eae6]">
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-elevated">
             <div
-              className={`h-full rounded-full transition-all ${atLimit ? 'bg-[#ef4444]' : 'bg-[#ff6747]'}`}
+              className={`h-full rounded-full transition-all ${atLimit ? 'bg-danger' : 'bg-accent'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="mt-2 text-xs font-medium text-[#6b7280]">
+          <p className="mt-2 text-xs font-medium text-fg-2">
             {atLimit
               ? 'Upgrade to create more projects'
               : `${remaining} project${remaining === 1 ? '' : 's'} remaining`}
@@ -125,7 +125,7 @@ export default function SidebarBilling() {
           <button
             type="button"
             onClick={() => setUpgradeOpen(true)}
-            className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-[#ff6747] text-[13px] font-semibold text-white shadow-[0_10px_18px_rgba(255,103,71,0.18)] transition hover:bg-[#f85b3a]"
+            className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-xl bg-accent text-[13px] font-semibold text-accent-fg shadow-[0_10px_18px_rgba(255,103,71,0.18)] transition hover:bg-accent-hover"
           >
             <Sparkles size={14} fill="currentColor" strokeWidth={1.5} />
             Upgrade
@@ -134,25 +134,25 @@ export default function SidebarBilling() {
       )}
 
       {menuOpen && (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-[#eee7e3] bg-white p-1.5 shadow-[0_20px_40px_rgba(31,41,55,0.14)]">
+        <div className="mt-2 overflow-hidden rounded-2xl border border-line bg-card p-1.5 shadow-[0_20px_40px_rgba(31,41,55,0.14)]">
           <Link
             href="/billing"
             onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111827] transition hover:bg-[#fff3ef]"
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-accent-fg transition hover:bg-accent-soft"
           >
-            <CreditCard size={16} strokeWidth={1.9} className="text-[#6b7280]" />
+            <CreditCard size={16} strokeWidth={1.9} className="text-fg-2" />
             View Plan
           </Link>
           <button
             type="button"
             onClick={() => void manageBilling()}
             disabled={portalBusy}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#111827] transition hover:bg-[#fff3ef] disabled:opacity-60"
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-accent-fg transition hover:bg-accent-soft disabled:opacity-60"
           >
             {portalBusy ? (
-              <Loader2 size={16} className="animate-spin text-[#6b7280]" />
+              <Loader2 size={16} className="animate-spin text-fg-2" />
             ) : (
-              <Receipt size={16} strokeWidth={1.9} className="text-[#6b7280]" />
+              <Receipt size={16} strokeWidth={1.9} className="text-fg-2" />
             )}
             Manage Billing
           </button>
@@ -162,17 +162,17 @@ export default function SidebarBilling() {
               setMenuOpen(false);
               setUpgradeOpen(true);
             }}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#111827] transition hover:bg-[#fff3ef]"
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-accent-fg transition hover:bg-accent-soft"
           >
-            <Sparkles size={16} strokeWidth={1.9} className="text-[#ff6747]" />
+            <Sparkles size={16} strokeWidth={1.9} className="text-accent" />
             Upgrade Plan
           </button>
           <Link
             href="/billing#usage"
             onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111827] transition hover:bg-[#fff3ef]"
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-accent-fg transition hover:bg-accent-soft"
           >
-            <Gauge size={16} strokeWidth={1.9} className="text-[#6b7280]" />
+            <Gauge size={16} strokeWidth={1.9} className="text-fg-2" />
             View Usage
           </Link>
         </div>

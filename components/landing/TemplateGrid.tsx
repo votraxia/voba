@@ -21,14 +21,14 @@ export default function TemplateGrid() {
             key={point.id}
             type="button"
             onClick={() => applyStartingPoint(point.prompt)}
-            className="group flex h-full flex-col rounded-2xl border border-[#eee7e3] bg-white p-5 text-left shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-[#ffd4c7] hover:shadow-[0_18px_36px_rgba(31,41,55,0.08)]"
+            className="group flex h-full flex-col rounded-2xl border border-line bg-card p-5 text-left shadow-[0_10px_24px_rgba(31,41,55,0.035)] transition hover:-translate-y-0.5 hover:border-accent-line hover:shadow-[0_18px_36px_rgba(31,41,55,0.08)]"
           >
             <span className={`grid h-11 w-11 place-items-center rounded-xl ${point.colour}`}>
               <Icon size={20} strokeWidth={1.9} />
             </span>
-            <h3 className="mt-4 text-[15px] font-semibold text-[#111827]">{point.title}</h3>
-            <p className="mt-1.5 text-[13px] leading-5 text-[#6b7280]">{point.desc}</p>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#f05a32]">
+            <h3 className="mt-4 text-[15px] font-semibold text-fg">{point.title}</h3>
+            <p className="mt-1.5 text-[13px] leading-5 text-fg-2">{point.desc}</p>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">
               Use this prompt
               <ArrowRight
                 size={14}

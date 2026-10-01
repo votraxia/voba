@@ -100,12 +100,12 @@ export default function ModelPicker() {
               ? `${getAIModelLabel(lockedModel)} is a Pro model — upgrade to use it`
               : `AI model: ${getAIModelLabel(activeModel ?? aiModel)}`
         }
-        className="flex h-11 items-center gap-2 rounded-xl border border-[#e8e2de] bg-white px-3 text-sm font-medium text-[#111827] shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-[#fff8f5] disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex h-11 items-center gap-2 rounded-xl border border-line bg-card px-3 text-sm font-medium text-accent-fg shadow-[0_8px_20px_rgba(31,41,55,0.04)] transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
       >
         {lockedModel ? (
-          <Lock size={16} strokeWidth={2} className="shrink-0 text-[#9aa2af]" />
+          <Lock size={16} strokeWidth={2} className="shrink-0 text-muted" />
         ) : (
-          <Sparkles size={17} strokeWidth={1.9} className="shrink-0 text-[#ff6747]" />
+          <Sparkles size={17} strokeWidth={1.9} className="shrink-0 text-accent" />
         )}
         <span className="hidden max-w-[8.5rem] truncate lg:block">
           {getAIModelLabel(activeModel ?? aiModel)}
@@ -113,20 +113,20 @@ export default function ModelPicker() {
         <ChevronDown
           size={16}
           strokeWidth={2}
-          className={`shrink-0 text-[#9aa2af] transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 overflow-hidden rounded-2xl border border-[#eee7e3] bg-white p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
-          <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#9aa2af]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 overflow-hidden rounded-2xl border border-line bg-card p-2 shadow-[0_24px_48px_rgba(31,41,55,0.14)]">
+          <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
             AI model
           </p>
-          <p className="px-3 pb-2 text-[11px] leading-relaxed text-[#9aa2af]">
+          <p className="px-3 pb-2 text-[11px] leading-relaxed text-muted">
             Used for this project&apos;s next generation or edit. Existing pages stay as they are.
           </p>
           {lockedModel && (
-            <p className="mb-2 rounded-lg bg-[#fff7e7] px-3 py-2 text-[11px] leading-snug text-[#8a5b06]">
+            <p className="mb-2 rounded-lg bg-warning-soft px-3 py-2 text-[11px] leading-snug text-warning">
               {getAIModelLabel(lockedModel)} is a Pro model. Your next generation will use{' '}
               {getAIModelLabel(DEFAULT_AI_MODEL)} until you upgrade.
             </p>
@@ -145,38 +145,38 @@ export default function ModelPicker() {
                     onClick={() => void choose(model.id)}
                     disabled={saving !== null}
                     className={`flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition disabled:cursor-not-allowed ${
-                      active ? 'bg-[#fff3ef]' : 'hover:bg-[#fff8f5]'
+                      active ? 'bg-accent-soft' : 'hover:bg-accent-soft'
                     }`}
                   >
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
-                        <span className="truncate text-[13px] font-semibold text-[#111827]">
+                        <span className="truncate text-[13px] font-semibold text-fg">
                           {model.label}
                         </span>
-                        <span className="shrink-0 rounded-md bg-[#f0e9ff] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#6b52c9]">
+                        <span className="shrink-0 rounded-md bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
                           {model.provider}
                         </span>
                         {model.premium && (
                           <span
                             title="Pro model"
-                            className="flex shrink-0 items-center gap-1 rounded-md bg-[#fff3ef] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#e14a24]"
+                            className="flex shrink-0 items-center gap-1 rounded-md bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-danger"
                           >
                             <Lock size={9} strokeWidth={2.6} />
                             Pro
                           </span>
                         )}
                       </span>
-                      <span className="mt-0.5 block text-[11px] leading-snug text-[#6b7280]">
+                      <span className="mt-0.5 block text-[11px] leading-snug text-fg-2">
                         {model.description}
                       </span>
                     </span>
 
                     {saving === model.id ? (
-                      <Loader2 size={15} strokeWidth={2} className="mt-0.5 shrink-0 animate-spin text-[#ff6747]" />
+                      <Loader2 size={15} strokeWidth={2} className="mt-0.5 shrink-0 animate-spin text-accent" />
                     ) : active ? (
-                      <Check size={15} strokeWidth={2.6} className="mt-0.5 shrink-0 text-[#ff6747]" />
+                      <Check size={15} strokeWidth={2.6} className="mt-0.5 shrink-0 text-accent" />
                     ) : locked ? (
-                      <Lock size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-[#c9c0b8]" />
+                      <Lock size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-muted" />
                     ) : null}
                   </button>
                 </li>
@@ -185,7 +185,7 @@ export default function ModelPicker() {
           </ul>
 
           {error && (
-            <p className="px-3 pb-2 pt-1 text-[11px] font-medium text-[#c0432f]">{error}</p>
+            <p className="px-3 pb-2 pt-1 text-[11px] font-medium text-danger">{error}</p>
           )}
         </div>
       )}

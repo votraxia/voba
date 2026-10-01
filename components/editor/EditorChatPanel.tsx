@@ -22,11 +22,11 @@ export default function EditorChatPanel() {
   }
 
   return (
-    <aside className="flex w-[300px] shrink-0 flex-col border-r border-[#ece6e2] bg-white lg:w-[360px] max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:z-30">
+    <aside className="flex w-[300px] shrink-0 flex-col border-r border-line bg-card lg:w-[360px] max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:z-30">
       <div className="flex items-center justify-between px-5 pb-4 pt-5">
         <button
           onClick={newChat}
-          className="flex items-center gap-2 text-[15px] font-semibold text-[#ff6747] transition hover:text-[#f85b3a]"
+          className="flex items-center gap-2 text-[15px] font-semibold text-accent transition hover:text-accent-hover"
         >
           <Plus size={18} strokeWidth={2.2} />
           New chat
@@ -34,14 +34,14 @@ export default function EditorChatPanel() {
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-5 pb-6">
-        <p className="text-xs font-medium text-[#9aa2af]">Today</p>
+        <p className="text-xs font-medium text-muted">Today</p>
 
         {messages.length === 0 && !isStreaming && (
           <div className="flex gap-3">
-            <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-[#f0e9ff] text-[#8b6df5]">
+            <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
               <Sparkles size={14} fill="currentColor" strokeWidth={1.5} />
             </span>
-            <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-[#eee7e3] bg-white px-4 py-3 text-sm leading-6 text-[#374151]">
+            <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-line bg-card px-4 py-3 text-sm leading-6 text-fg-2">
               Describe the storefront you want and I&apos;ll build it page by page.
             </div>
           </div>
@@ -51,7 +51,7 @@ export default function EditorChatPanel() {
           if (message.role === 'user') {
             return (
               <div key={message.id} className="flex justify-end">
-                <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-md bg-[#fff3ef] px-4 py-3 text-sm leading-6 text-[#111827]">
+                <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-md bg-accent-soft px-4 py-3 text-sm leading-6 text-accent-fg">
                   {message.content}
                 </div>
               </div>
@@ -59,10 +59,10 @@ export default function EditorChatPanel() {
           }
           return (
             <div key={message.id} className="flex gap-3">
-              <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-[#f0e9ff] text-[#8b6df5]">
+              <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
                 <Sparkles size={14} fill="currentColor" strokeWidth={1.5} />
               </span>
-              <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-[#eee7e3] bg-white px-4 py-3 text-sm leading-6 text-[#374151]">
+              <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-line bg-card px-4 py-3 text-sm leading-6 text-fg-2">
                 {message.content ? (
                   <span className="whitespace-pre-wrap">{message.content}</span>
                 ) : (
@@ -76,17 +76,17 @@ export default function EditorChatPanel() {
         })}
 
         {generatingPage && (
-          <div className="rounded-2xl border border-[#eee7e3] bg-[#fffdfc] p-4">
+          <div className="rounded-2xl border border-line bg-app p-4">
             <div className="flex items-center gap-3 text-sm">
-              <span className="grid h-5 w-5 shrink-0 place-items-center text-[#9aa2af]">
+              <span className="grid h-5 w-5 shrink-0 place-items-center text-muted">
                 <Loader2 size={15} strokeWidth={2} className="animate-spin" />
               </span>
-              <span className="font-medium text-[#374151]">
+              <span className="font-medium text-fg-2">
                 Generating the {generatingPage.label}…
               </span>
             </div>
             {generatingPage.html && (
-              <p className="mt-2 pl-8 text-xs text-[#9aa2af]">
+              <p className="mt-2 pl-8 text-xs text-muted">
                 Streaming sections into the live preview →
               </p>
             )}
@@ -94,20 +94,20 @@ export default function EditorChatPanel() {
         )}
 
         {pages.some((p) => p.status === 'ready') && !isStreaming && (
-          <div className="flex items-center gap-2 pl-9 text-xs font-medium text-[#35b86b]">
+          <div className="flex items-center gap-2 pl-9 text-xs font-medium text-success">
             <Check size={13} strokeWidth={2.6} /> Preview updated
           </div>
         )}
 
         {error && (
-          <div className="rounded-xl border border-[#f6d5cd] bg-[#fff4f1] px-4 py-3 text-sm text-[#b4432a]">
+          <div className="rounded-xl border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
             {error}
           </div>
         )}
       </div>
 
-      <div className="border-t border-[#f0ebe7] p-4">
-        <div className="rounded-2xl border border-[#e8e2de] bg-white p-3 shadow-[0_10px_24px_rgba(31,41,55,0.05)]">
+      <div className="border-t border-line p-4">
+        <div className="rounded-2xl border border-line bg-card p-3 shadow-[0_10px_24px_rgba(31,41,55,0.05)]">
           <textarea
             aria-label="Ask anything about your theme"
             placeholder="Ask anything about your theme..."
@@ -121,14 +121,14 @@ export default function EditorChatPanel() {
               }
             }}
             disabled={isStreaming}
-            className="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm text-[#111827] outline-none placeholder:text-[#9aa2af] disabled:opacity-60"
+            className="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm text-fg outline-none placeholder:text-muted disabled:opacity-60"
           />
           <div className="flex items-center justify-end pt-1">
             <button
               aria-label="Send message"
               onClick={submit}
               disabled={isStreaming || !draft.trim()}
-              className="grid h-9 w-9 place-items-center rounded-lg bg-[#ff6747] text-white shadow-[0_10px_18px_rgba(255,103,71,0.22)] transition hover:bg-[#f85b3a] disabled:cursor-not-allowed disabled:opacity-50"
+              className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-fg shadow-[0_10px_18px_rgba(255,103,71,0.22)] transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isStreaming ? (
                 <Loader2 size={17} strokeWidth={2.2} className="animate-spin" />

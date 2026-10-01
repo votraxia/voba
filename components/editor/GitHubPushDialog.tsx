@@ -154,17 +154,17 @@ export default function GitHubPushDialog({
           role="dialog"
           aria-modal="true"
           aria-label="Save theme to GitHub"
-          className="w-[min(32rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#eee7e3] bg-white shadow-[0_32px_64px_rgba(31,41,55,0.24)]"
+          className="w-[min(32rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-card shadow-[0_32px_64px_rgba(31,41,55,0.24)]"
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-[#f1ebe7] px-5 py-4">
+          <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f1f3f6]">
-                <GitFork size={18} strokeWidth={2} className="text-[#111827]" />
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-elevated">
+                <GitFork size={18} strokeWidth={2} className="text-fg" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-sm font-bold text-[#111827]">Save theme to GitHub</h2>
-                <p className="truncate text-[11px] text-[#9aa2af]">
+                <h2 className="text-sm font-bold text-fg">Save theme to GitHub</h2>
+                <p className="truncate text-[11px] text-muted">
                   {projectName || 'Storefront theme'}
                 </p>
               </div>
@@ -172,7 +172,7 @@ export default function GitHubPushDialog({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="grid h-8 w-8 place-items-center rounded-lg text-[#9aa2af] transition hover:bg-[#f6f1ee] hover:text-[#4b5563]"
+              className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-elevated hover:text-fg-2"
             >
               <X size={17} strokeWidth={2} />
             </button>
@@ -185,8 +185,8 @@ export default function GitHubPushDialog({
 
   if (phase === 'checking') {
     return dialogShell(
-      <div className="flex items-center gap-3 py-6 text-sm text-[#4b5563]">
-        <Loader2 size={18} className="animate-spin text-[#ff6747]" />
+      <div className="flex items-center gap-3 py-6 text-sm text-fg-2">
+        <Loader2 size={18} className="animate-spin text-accent" />
         Checking your GitHub connection…
       </div>
     );
@@ -195,24 +195,24 @@ export default function GitHubPushDialog({
   if (phase === 'not_configured') {
     return dialogShell(
       <div className="text-center">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#f1f3f6]">
-          <GitFork size={26} strokeWidth={1.9} className="text-[#111827]" />
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-elevated">
+          <GitFork size={26} strokeWidth={1.9} className="text-fg" />
         </span>
-        <h3 className="mt-3 text-base font-bold text-[#111827]">GitHub isn&apos;t connected yet</h3>
-        <p className="mt-1.5 text-[13px] leading-6 text-[#6b7280]">
-          Add a <code className="rounded bg-[#f1f3f6] px-1 py-0.5 text-[12px]">GITHUB_TOKEN</code> in
+        <h3 className="mt-3 text-base font-bold text-fg">GitHub isn&apos;t connected yet</h3>
+        <p className="mt-1.5 text-[13px] leading-6 text-fg-2">
+          Add a <code className="rounded bg-elevated px-1 py-0.5 text-[12px]">GITHUB_TOKEN</code> in
           your project&apos;s environment settings, then try again. The token stays on the server —
           it is never sent to the browser.
         </p>
         <button
           onClick={retry}
-          className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
+          className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
         >
           Check again
         </button>
         <button
           onClick={onClose}
-          className="mt-2.5 flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-[#6b7280] transition hover:bg-[#f6f1ee]"
+          className="mt-2.5 flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-fg-2 transition hover:bg-elevated"
         >
           Close
         </button>
@@ -223,30 +223,30 @@ export default function GitHubPushDialog({
   if (phase === 'done' && result) {
     return dialogShell(
       <div className="text-center">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#eafaf0]">
-          <CheckCircle2 size={30} strokeWidth={2} className="text-[#35b86b]" />
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-success-soft">
+          <CheckCircle2 size={30} strokeWidth={2} className="text-success" />
         </span>
-        <h3 className="mt-3 text-base font-bold text-[#111827]">Theme committed</h3>
-        <p className="mt-1 text-[13px] leading-6 text-[#6b7280]">
+        <h3 className="mt-3 text-base font-bold text-fg">Theme committed</h3>
+        <p className="mt-1 text-[13px] leading-6 text-fg-2">
           {result.fileCount} theme file{result.fileCount === 1 ? '' : 's'} committed to{' '}
-          <span className="font-semibold text-[#111827]">
+          <span className="font-semibold text-fg">
             {result.owner}/{result.name}
           </span>{' '}
-          on <span className="font-semibold text-[#111827]">{result.branch}</span> as{' '}
-          <code className="rounded bg-[#f1f3f6] px-1 text-[12px]">{result.commitSha}</code>.
+          on <span className="font-semibold text-fg">{result.branch}</span> as{' '}
+          <code className="rounded bg-elevated px-1 text-[12px]">{result.commitSha}</code>.
         </p>
         <a
           href={result.commitUrl}
           target="_blank"
           rel="noreferrer noopener"
-          className="mt-5 flex h-11 items-center justify-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
+          className="mt-5 flex h-11 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
         >
           <ExternalLink size={16} strokeWidth={2} />
           View commit on GitHub
         </a>
         <button
           onClick={onClose}
-          className="mt-2.5 flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-[#6b7280] transition hover:bg-[#f6f1ee]"
+          className="mt-2.5 flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-fg-2 transition hover:bg-elevated"
         >
           Done
         </button>
@@ -257,20 +257,20 @@ export default function GitHubPushDialog({
   if (phase === 'error') {
     return dialogShell(
       <div className="text-center">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fdeceb]">
-          <AlertTriangle size={28} strokeWidth={2} className="text-[#e5533d]" />
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger-soft">
+          <AlertTriangle size={28} strokeWidth={2} className="text-danger" />
         </span>
-        <h3 className="mt-3 text-base font-bold text-[#111827]">Couldn&apos;t commit the theme</h3>
-        <p className="mt-1 break-words text-[13px] text-[#6b7280]">{error}</p>
+        <h3 className="mt-3 text-base font-bold text-fg">Couldn&apos;t commit the theme</h3>
+        <p className="mt-1 break-words text-[13px] text-fg-2">{error}</p>
         <button
           onClick={retry}
-          className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
+          className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
         >
           Try again
         </button>
         <button
           onClick={onClose}
-          className="mt-2.5 flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-[#6b7280] transition hover:bg-[#f6f1ee]"
+          className="mt-2.5 flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-fg-2 transition hover:bg-elevated"
         >
           Close
         </button>
@@ -281,39 +281,39 @@ export default function GitHubPushDialog({
   return dialogShell(
     <div>
       {phase === 'committing' && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl bg-[#fff8f5] px-3.5 py-3 text-[13px] text-[#4b5563]">
-          <Loader2 size={16} className="animate-spin text-[#ff6747]" />
+        <div className="mb-4 flex items-center gap-3 rounded-xl bg-accent-soft px-3.5 py-3 text-[13px] text-accent-fg-2">
+          <Loader2 size={16} className="animate-spin text-accent" />
           Committing {pushFiles.length} theme file{pushFiles.length === 1 ? '' : 's'}…
         </div>
       )}
 
-      <div className="flex items-center gap-3 rounded-xl border border-[#eee7e3] bg-[#faf7f5] px-3.5 py-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white ring-1 ring-[#eee7e3]">
-          <GitFork size={16} className="text-[#111827]" />
+      <div className="flex items-center gap-3 rounded-xl border border-line bg-elevated px-3.5 py-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-card ring-1 ring-line">
+          <GitFork size={16} className="text-fg" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-semibold text-[#111827]">
+          <p className="truncate text-[13px] font-semibold text-fg">
             {status?.account?.login ?? 'GitHub'}
           </p>
-          <p className="text-[11px] text-[#9aa2af]">
+          <p className="text-[11px] text-muted">
             {repositories.length} repositor{repositories.length === 1 ? 'y' : 'ies'} available
           </p>
         </div>
       </div>
 
-      <label className="mt-4 block text-[13px] font-semibold text-[#111827]">Repository</label>
+      <label className="mt-4 block text-[13px] font-semibold text-fg">Repository</label>
       {repositories.length === 0 ? (
-        <p className="mt-1.5 rounded-xl bg-[#fdeceb] px-3.5 py-2.5 text-[12.5px] text-[#c0432f]">
+        <p className="mt-1.5 rounded-xl bg-danger-soft px-3.5 py-2.5 text-[12.5px] text-danger">
           This GitHub account has no repositories the token can push to. Create one on GitHub, or
           grant the token access to an existing repository.
         </p>
       ) : (
-        <div className="mt-1.5 flex items-center rounded-xl border-2 border-[#eee7e3] px-3 focus-within:border-[#ff6747]">
-          <FolderGit2 size={15} className="shrink-0 text-[#9aa2af]" />
+        <div className="mt-1.5 flex items-center rounded-xl border-2 border-line px-3 focus-within:border-accent">
+          <FolderGit2 size={15} className="shrink-0 text-muted" />
           <select
             value={repo}
             onChange={(e) => setRepo(e.target.value)}
-            className="h-11 w-full bg-transparent px-2.5 text-sm text-[#111827] outline-none"
+            className="h-11 w-full bg-transparent px-2.5 text-sm text-fg outline-none"
           >
             {repositories.map((repository) => (
               <option key={repository.fullName} value={repository.fullName}>
@@ -325,7 +325,7 @@ export default function GitHubPushDialog({
         </div>
       )}
       {selected && (
-        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#9aa2af]">
+        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted">
           {selected.isPrivate && <Lock size={11} strokeWidth={2.2} />}
           {selected.isPrivate ? 'Private repository' : 'Public repository'}
           {selected.pushedAt ? ` · ${formatPushedAt(selected.pushedAt)}` : ''}
@@ -334,45 +334,45 @@ export default function GitHubPushDialog({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="block text-[13px] font-semibold text-[#111827]">Branch</label>
-          <div className="mt-1.5 flex items-center rounded-xl border-2 border-[#eee7e3] px-3 focus-within:border-[#ff6747]">
-            <GitBranch size={15} className="shrink-0 text-[#9aa2af]" />
+          <label className="block text-[13px] font-semibold text-fg">Branch</label>
+          <div className="mt-1.5 flex items-center rounded-xl border-2 border-line px-3 focus-within:border-accent">
+            <GitBranch size={15} className="shrink-0 text-muted" />
             <input
               ref={branchRef}
               value={effectiveBranch}
               onChange={(e) => setBranch(e.target.value)}
               placeholder="main"
-              className="h-11 w-full bg-transparent px-2.5 text-sm text-[#111827] outline-none placeholder:text-[#c9c1bb]"
+              className="h-11 w-full bg-transparent px-2.5 text-sm text-fg outline-none placeholder:text-muted"
             />
           </div>
         </div>
         <div>
-          <label className="block text-[13px] font-semibold text-[#111827]">Folder (optional)</label>
+          <label className="block text-[13px] font-semibold text-fg">Folder (optional)</label>
           <input
             value={basePath}
             onChange={(e) => setBasePath(e.target.value)}
             placeholder="themes/my-store"
-            className="mt-1.5 h-11 w-full rounded-xl border-2 border-[#eee7e3] px-3 text-sm text-[#111827] outline-none placeholder:text-[#c9c1bb] focus:border-[#ff6747]"
+            className="mt-1.5 h-11 w-full rounded-xl border-2 border-line px-3 text-sm text-fg outline-none placeholder:text-muted focus:border-accent"
           />
         </div>
       </div>
 
-      <label className="mt-4 block text-[13px] font-semibold text-[#111827]">
+      <label className="mt-4 block text-[13px] font-semibold text-fg">
         Commit message (optional)
       </label>
       <input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder={`Update Shopify theme: ${projectName || 'storefront'}`}
-        className="mt-1.5 h-11 w-full rounded-xl border-2 border-[#eee7e3] px-3 text-sm text-[#111827] outline-none placeholder:text-[#c9c1bb] focus:border-[#ff6747]"
+        className="mt-1.5 h-11 w-full rounded-xl border-2 border-line px-3 text-sm text-fg outline-none placeholder:text-muted focus:border-accent"
       />
 
-      {error && <p className="mt-2 text-[12.5px] text-[#c0432f]">{error}</p>}
+      {error && <p className="mt-2 text-[12.5px] text-danger">{error}</p>}
 
       <button
         onClick={() => void startCommit()}
         disabled={phase === 'committing' || repositories.length === 0}
-        className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#ff6747] px-4 text-sm font-semibold text-white transition hover:bg-[#f85b3a] disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {phase === 'committing' ? (
           <>
@@ -386,7 +386,7 @@ export default function GitHubPushDialog({
           </>
         )}
       </button>
-      <p className="mt-3 text-center text-[11px] leading-4 text-[#9aa2af]">
+      <p className="mt-3 text-center text-[11px] leading-4 text-muted">
         One commit with {pushFiles.length} file{pushFiles.length === 1 ? '' : 's'}. Nothing is
         overwritten outside this folder, and the token is used server-side only.
       </p>

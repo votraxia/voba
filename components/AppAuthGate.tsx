@@ -28,9 +28,9 @@ export default function AppAuthGate({
 
   if (loading || !user) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#fffdfc] text-[#6b7280]">
+      <div className="grid min-h-screen place-items-center bg-app text-fg-2">
         <div className="flex items-center gap-3 text-sm font-medium">
-          <Loader2 size={18} className="animate-spin text-[#ff6747]" />
+          <Loader2 size={18} className="animate-spin text-accent" />
           Redirecting to sign in…
         </div>
       </div>

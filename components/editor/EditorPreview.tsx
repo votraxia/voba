@@ -185,11 +185,11 @@ export default function EditorPreview({ projectName }: { projectName?: string })
 
   return (
     <section className="flex min-w-0 flex-1 flex-col">
-      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#ece6e2] bg-white shadow-[0_10px_30px_rgba(31,41,55,0.05)]">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-card shadow-[0_10px_30px_rgba(31,41,55,0.05)]">
         {/* Browser tab strip */}
-        <div className="flex items-center gap-1 overflow-x-auto border-b border-[#efeae6] bg-[#f4f0ec] px-2 pt-2">
+        <div className="flex items-center gap-1 overflow-x-auto border-b border-line bg-elevated px-2 pt-2">
           {pages.length === 0 && (
-            <div className="flex h-9 items-center px-3 text-sm text-[#9aa2af]">No pages yet</div>
+            <div className="flex h-9 items-center px-3 text-sm text-muted">No pages yet</div>
           )}
           {pages.map((tab) => (
             <PreviewTab
@@ -204,31 +204,31 @@ export default function EditorPreview({ projectName }: { projectName?: string })
         </div>
 
         {/* Browser toolbar / address bar */}
-        <div className="flex items-center gap-3 border-b border-[#efeae6] bg-white px-3 py-2">
+        <div className="flex items-center gap-3 border-b border-line bg-card px-3 py-2">
           <div className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
             <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
             <span className="h-3 w-3 rounded-full bg-[#28c840]" />
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-[#eee7e3] bg-[#faf8f6] px-3 py-1.5">
-            <span className="grid h-4 w-4 place-items-center rounded-full bg-[#e8f6ee] text-[9px] font-bold text-[#35b86b]">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-line bg-elevated px-3 py-1.5">
+            <span className="grid h-4 w-4 place-items-center rounded-full bg-success-soft text-[9px] font-bold text-success">
               ✓
             </span>
-            <span className="truncate text-[13px] text-[#6b7280]">
+            <span className="truncate text-[13px] text-fg-2">
               {storeDomain}
-              <span className="text-[#9aa2af]">{activePage?.path ?? '/'}</span>
+              <span className="text-muted">{activePage?.path ?? '/'}</span>
             </span>
             <button
               aria-label="Reload preview"
               onClick={() => setReloadKey((k) => k + 1)}
-              className="ml-auto grid h-6 w-6 shrink-0 place-items-center rounded-md text-[#9aa2af] transition hover:bg-black/5 hover:text-[#4b5563]"
+              className="ml-auto grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted transition hover:bg-black/5 hover:text-fg-2"
             >
               <RotateCw size={14} strokeWidth={2} />
             </button>
           </div>
 
-          <div className="flex items-center gap-1 rounded-lg border border-[#eee7e3] bg-white p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-line bg-card p-0.5">
             {VIEWPORTS.map((v) => {
               const Icon = v.icon;
               const isActive = v.id === viewport;
@@ -239,8 +239,8 @@ export default function EditorPreview({ projectName }: { projectName?: string })
                   aria-pressed={isActive}
                   onClick={() => setViewport(v.id)}
                   className={`grid h-7 w-7 place-items-center rounded-md transition ${isActive
-                      ? 'bg-[#fff3ef] text-[#f05a32]'
-                      : 'text-[#9aa2af] hover:bg-[#faf8f6] hover:text-[#4b5563]'
+                      ? 'bg-accent-soft text-accent'
+                      : 'text-muted hover:bg-elevated hover:text-fg-2'
                     }`}
                 >
                   <Icon size={15} strokeWidth={1.9} />
@@ -251,16 +251,16 @@ export default function EditorPreview({ projectName }: { projectName?: string })
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 overflow-auto bg-[#fafafa]">
+        <div className="flex-1 overflow-auto bg-elevated">
           <div
-            className="relative mx-auto h-full min-h-full overflow-hidden rounded-xl border border-[#ece6e2] bg-white transition-[max-width] duration-300"
+            className="relative mx-auto h-full min-h-full overflow-hidden rounded-xl border border-line bg-card transition-[max-width] duration-300"
             style={{ maxWidth: viewportWidth }}
           >
             {/* Inline-edit toggle — top-right of the preview. */}
             {activePage && activeHtml && (
               <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
                 {isImageGenerating && (
-                  <div className="flex items-center gap-2 rounded-lg border border-[#ffd7ce] bg-white/95 px-3 py-1.5 text-[13px] font-medium text-[#c0432f] shadow-sm backdrop-blur">
+                  <div className="flex items-center gap-2 rounded-lg border border-danger-soft bg-elevated/95 px-3 py-1.5 text-[13px] font-medium text-danger shadow-sm backdrop-blur">
                     <Loader2 size={15} strokeWidth={2.2} className="animate-spin" />
                     Generating image…
                   </div>
@@ -270,8 +270,8 @@ export default function EditorPreview({ projectName }: { projectName?: string })
                   aria-pressed={editMode}
                   className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium shadow-sm transition ${
                     editMode
-                      ? 'border-transparent bg-[#f05a32] text-white hover:bg-[#e14a24]'
-                      : 'border-[#eee7e3] bg-white/90 text-[#4b5563] backdrop-blur hover:bg-white hover:text-[#111827]'
+                      ? 'border-transparent bg-accent text-accent-fg hover:bg-accent-hover'
+                      : 'border-line bg-elevated/90 text-fg-2 backdrop-blur hover:bg-card hover:text-fg'
                   }`}
                 >
                   {editMode ? <Check size={15} strokeWidth={2.2} /> : <Pencil size={15} strokeWidth={2} />}
@@ -300,10 +300,10 @@ export default function EditorPreview({ projectName }: { projectName?: string })
               />
             ) : (
               <div className="grid h-full min-h-[320px] place-items-center">
-                <div className="flex flex-col items-center gap-3 text-center text-[#9aa2af]">
+                <div className="flex flex-col items-center gap-3 text-center text-muted">
                   {generatingPageId ? (
                     <>
-                      <Loader2 size={22} className="animate-spin text-[#ff8a66]" />
+                      <Loader2 size={22} className="animate-spin text-accent" />
                       <p className="text-sm font-medium">Generating your preview…</p>
                     </>
                   ) : (
@@ -317,9 +317,9 @@ export default function EditorPreview({ projectName }: { projectName?: string })
 
             {/* Overlay while a page is still empty and generating. */}
             {activePage && !activeHtml && generatingPageId === activePage.id && (
-              <div className="pointer-events-none absolute inset-0 grid place-items-center bg-white">
-                <div className="flex flex-col items-center gap-3 text-center text-[#9aa2af]">
-                  <Loader2 size={22} className="animate-spin text-[#ff8a66]" />
+              <div className="pointer-events-none absolute inset-0 grid place-items-center bg-card">
+                <div className="flex flex-col items-center gap-3 text-center text-muted">
+                  <Loader2 size={22} className="animate-spin text-accent" />
                   <p className="text-sm font-medium">Generating your {activePage.label}…</p>
                 </div>
               </div>
@@ -348,22 +348,22 @@ function PreviewTab({
   return (
     <div
       className={`group flex h-9 min-w-0 max-w-[180px] shrink-0 items-center gap-2 rounded-t-lg px-3 text-sm transition ${isActive
-          ? '-mb-px border-x border-t border-[#efeae6] bg-white font-medium text-[#111827]'
-          : 'text-[#6b7280] hover:bg-white/60'
+          ? '-mb-px border-x border-t border-line bg-card font-medium text-fg'
+          : 'text-fg-2 hover:bg-elevated/60'
         }`}
     >
       <button onClick={onSelect} className="flex min-w-0 items-center gap-2">
         {isGenerating ? (
-          <Loader2 size={14} className="animate-spin text-[#f05a32]" />
+          <Loader2 size={14} className="animate-spin text-accent" />
         ) : (
-          <Icon size={15} strokeWidth={1.9} className={isActive ? 'text-[#f05a32]' : 'text-[#9aa2af]'} />
+          <Icon size={15} strokeWidth={1.9} className={isActive ? 'text-accent' : 'text-muted'} />
         )}
         <span className="truncate">{tab.label}</span>
       </button>
       <button
         aria-label={`Close ${tab.label}`}
         onClick={onClose}
-        className="grid h-5 w-5 shrink-0 place-items-center rounded-md text-[#9aa2af] opacity-0 transition hover:bg-black/5 hover:text-[#4b5563] group-hover:opacity-100"
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-md text-muted opacity-0 transition hover:bg-black/5 hover:text-fg-2 group-hover:opacity-100"
       >
         <X size={13} strokeWidth={2.2} />
       </button>

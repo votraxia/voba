@@ -42,7 +42,7 @@ export default function GoogleButton({ label }: { label: string }) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="flex h-11 w-full items-center justify-center gap-3 rounded-base border-2 border-neutral-200 bg-white text-sm font-medium text-[#111827] transition-colors hover:border-neutral-300 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex h-11 w-full items-center justify-center gap-3 rounded-base border-2 border-neutral-200 bg-card text-sm font-medium text-fg transition-colors hover:border-neutral-300 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <GoogleIcon />
       {loading ? 'Redirecting…' : label}

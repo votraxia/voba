@@ -50,9 +50,9 @@ export default function EditorPage() {
 
   if (status === 'loading') {
     return (
-      <div className="grid h-screen place-items-center bg-[#fafafa] text-[#6b7280]">
+      <div className="grid h-screen place-items-center bg-elevated text-fg-2">
         <div className="flex items-center gap-3 text-sm font-medium">
-          <Loader2 size={18} className="animate-spin text-[#ff6747]" />
+          <Loader2 size={18} className="animate-spin text-accent" />
           Loading your project…
         </div>
       </div>
@@ -61,15 +61,15 @@ export default function EditorPage() {
 
   if (status === 'not-found') {
     return (
-      <div className="grid h-screen place-items-center bg-[#fafafa] px-6 text-center">
+      <div className="grid h-screen place-items-center bg-elevated px-6 text-center">
         <div>
-          <h1 className="text-lg font-semibold text-[#111827]">Project not found</h1>
-          <p className="mt-2 text-sm text-[#6b7280]">
+          <h1 className="text-lg font-semibold text-fg">Project not found</h1>
+          <p className="mt-2 text-sm text-fg-2">
             This project doesn&apos;t exist or you don&apos;t have access to it.
           </p>
           <button
             onClick={() => router.push('/projects')}
-            className="mt-5 inline-flex h-10 items-center rounded-xl bg-[#ff6747] px-5 text-sm font-semibold text-white transition hover:bg-[#f85b3a]"
+            className="mt-5 inline-flex h-10 items-center rounded-xl bg-accent px-5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
           >
             Back to projects
           </button>
@@ -84,7 +84,7 @@ export default function EditorPage() {
       initialPrompt={project?.prompt ?? ''}
       initialAiModel={project?.ai_model ?? null}
     >
-      <div className="flex h-screen flex-col overflow-hidden bg-[#fafafa]">
+      <div className="flex h-screen flex-col overflow-hidden bg-elevated">
         <EditorTopBar
           collapsed={collapsed}
           onToggleSidebar={() => setCollapsed((c) => !c)}
